@@ -1,0 +1,35 @@
+# روي — نشر خدمة البوتات كعامل خلفية على Render.
+# أضف الأسرار في لوحة Render (Environment) — لا تضعها في الكود.
+services:
+  - type: worker
+    name: rawi-bots
+    runtime: node
+    plan: free
+    region: frankfurt
+    buildCommand: npm install
+    startCommand: node src/index.js
+    rootDir: bots
+    autoDeploy: true
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: FIREBASE_SERVICE_ACCOUNT_JSON
+        sync: false
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: GEMINI_MODEL
+        value: gemini-2.0-flash
+      - key: TELEGRAM_ADMIN_CHAT_ID
+        sync: false
+      - key: BOT_RAWI_TOKEN
+        sync: false
+      - key: BOT_NAQID_TOKEN
+        sync: false
+      - key: BOT_WARRAQ_TOKEN
+        sync: false
+      - key: BOT_HARIS_TOKEN
+        sync: false
+      - key: BOT_KHAZIN_TOKEN
+        sync: false
+      - key: BOT_KHABIR_TOKEN
+        sync: false

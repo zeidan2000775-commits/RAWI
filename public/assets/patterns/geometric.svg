@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" width="120" height="120">
+  <defs>
+    <pattern id="geo" width="60" height="60" patternUnits="userSpaceOnUse">
+      <g fill="none" stroke="currentColor" stroke-width="1" opacity=".45">
+        <!-- 8-point star (نجمة ثمانية) -->
+        <path d="M30 6 38 22 54 30 38 38 30 54 22 38 6 30 22 22Z"/>
+        <path d="M30 14 35 25 46 30 35 35 30 46 25 35 14 30 25 25Z"/>
+        <path d="M0 30h12M48 30h12M30 0v12M30 48v12"/>
+      </g>
+    </pattern>
+  </defs>
+  <rect width="120" height="120" fill="url(#geo)"/>
+</svg>

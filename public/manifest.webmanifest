@@ -1,0 +1,21 @@
+{
+  "name": "روي — منصة الأدب والشعر",
+  "short_name": "روي",
+  "description": "منصة عربية اجتماعية وموسوعية للشعر والأدب.",
+  "lang": "ar",
+  "dir": "rtl",
+  "start_url": "./rawi.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0E1F25",
+  "theme_color": "#0E1F25",
+  "categories": ["social", "books", "education"],
+  "icons": [
+    { "src": "assets/brand/app-icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
+  ],
+  "shortcuts": [
+    { "name": "استوديو الكتابة", "url": "./rawi.html#studio" },
+    { "name": "الموسوعة", "url": "./rawi.html#explore" }
+  ]
+}

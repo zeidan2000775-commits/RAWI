@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 240" role="img" aria-label="مرحبًا بك في روي">
+  <defs>
+    <linearGradient id="wG" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#E8C766"/><stop offset="1" stop-color="#B8860B"/></linearGradient>
+  </defs>
+  <ellipse cx="160" cy="210" rx="120" ry="14" fill="currentColor" opacity=".06"/>
+  <!-- open book -->
+  <path d="M40 70c30-16 64-16 80 4 16-20 50-20 80-4v118c-30-16-64-16-80 4-16-20-50-20-80-4z" fill="currentColor" opacity=".08"/>
+  <path d="M40 70c30-16 64-16 80 4v118c-16-20-50-20-80-4z" fill="currentColor" opacity=".14"/>
+  <path d="M200 74c30-16 64-16 80-4v118c-30-16-64-16-80 4z" fill="currentColor" opacity=".14" transform="translate(-80 -4)"/>
+  <path d="M120 74v118" stroke="url(#wG)" stroke-width="3"/>
+  <!-- text lines -->
+  <g stroke="currentColor" stroke-width="3" stroke-linecap="round" opacity=".35">
+    <path d="M60 96h44M60 112h40M60 128h44M136 96h44M136 112h40M136 128h36"/>
+  </g>
+  <!-- rising star/quill -->
+  <path d="M160 22l3.5 9 9.5.6-7.4 6 2.4 9.2L160 51l-7.9 4.8 2.4-9.2-7.4-6 9.5-.6z" fill="url(#wG)"/>
+  <circle cx="96" cy="44" r="3" fill="url(#wG)"/><circle cx="226" cy="52" r="2.4" fill="url(#wG)"/>
+</svg>

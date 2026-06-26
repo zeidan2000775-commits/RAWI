@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="روي">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#1B3A36"/><stop offset="1" stop-color="#0E1F25"/></linearGradient>
+    <linearGradient id="gd" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#F0D27C"/><stop offset="1" stop-color="#B8860B"/></linearGradient>
+  </defs>
+  <rect width="512" height="512" rx="112" fill="url(#bg)"/>
+  <g opacity=".12" fill="none" stroke="#F0D27C" stroke-width="3">
+    <path d="M256 70 300 170 400 214 300 258 256 358 212 258 112 214 212 170Z"/>
+  </g>
+  <!-- nib -->
+  <path d="M330 150 200 350a16 16 0 0 0-2.4 6l-11 53a8 8 0 0 0 10.4 9l50-17a16 16 0 0 0 6.4-4.6L390 200a27 27 0 0 0-6.4-37l-9.6-6.4a27 27 0 0 0-36 5.6Z" fill="url(#gd)"/>
+  <path d="M200 350l40 27" stroke="#0E1F25" stroke-width="13" stroke-linecap="round"/>
+  <path d="M228 318l28 19" stroke="#0E1F25" stroke-width="9" stroke-linecap="round" opacity=".7"/>
+  <!-- droplet -->
+  <path d="M186 408c0-18 14-32 21-32s21 14 21 32a21 21 0 1 1-42 0Z" fill="url(#gd)"/>
+</svg>

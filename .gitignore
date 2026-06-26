@@ -1,0 +1,44 @@
+# ===== Secrets (NEVER commit) =====
+.env
+.env.*
+!.env.example
+*serviceAccount*.json
+*service_account*.json
+firebase-adminsdk*.json
+secrets/
+
+# ===== Dependencies =====
+node_modules/
+.pnp
+.pnp.js
+
+# ===== Build / cache =====
+dist/
+build/
+.cache/
+.parcel-cache/
+.vercel/
+.firebase/
+.turbo/
+
+# ===== Logs =====
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# ===== OS / Editor =====
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/*
+!.vscode/extensions.json
+*.swp
+
+# ===== Runtime =====
+pids/
+*.pid
+coverage/
+.nyc_output/
+tmp/

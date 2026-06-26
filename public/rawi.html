@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=5" />
+<meta name="theme-color" content="#0E1F25" />
+<meta name="description" content="روي — منصة عربية اجتماعية وموسوعية للشعر والأدب." />
+<title>روي · منصة الأدب والشعر</title>
+<link rel="manifest" href="manifest.webmanifest" />
+<link rel="icon" href="assets/brand/app-icon.svg" type="image/svg+xml" />
+<link rel="apple-touch-icon" href="assets/brand/app-icon.svg" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Cairo:wght@400;500;600;700;800&family=Playfair+Display:wght@500;700&display=swap" rel="stylesheet" />
+<style>
+/* ============================ Design Tokens ============================ */
+:root{
+  --gold:#C9A227; --gold-2:#E8C766; --gold-soft:#F4EBD0;
+  --teal:#2C6E63; --teal-2:#3C9484; --maroon:#7B2D26; --rose:#D7415F;
+  --r-sm:10px; --r:16px; --r-lg:22px; --r-xl:30px;
+  --ease:cubic-bezier(.22,.61,.36,1); --fast:.18s; --med:.32s;
+  --app-max:480px;
+  --shadow-1:0 1px 2px rgba(16,31,37,.06),0 4px 16px rgba(16,31,37,.06);
+  --shadow-2:0 8px 30px rgba(16,31,37,.14);
+  --shadow-pop:0 18px 50px rgba(16,31,37,.28);
+  --font-ui:'Cairo',system-ui,'Segoe UI',sans-serif;
+  --font-serif:'Amiri','Times New Roman',serif;
+  --font-latin:'Playfair Display',Georgia,serif;
+  --fs:1; /* font scaler */
+}
+/* Light theme (parchment) */
+:root,[data-theme="light"]{
+  --bg:#FBF7EF; --bg-2:#F3ECDD; --surface:#FFFFFF; --surface-2:#FBF7EF;
+  --ink:#1A202C; --ink-2:#2D3748; --muted:#6B7280; --line:#EAE0CC;
+  --rail:rgba(255,255,255,.7); --glass:rgba(255,255,255,.72);
+  --scrim:rgba(26,32,44,.45);
+}
+[data-theme="dark"]{
+  --bg:#0E1116; --bg-2:#141925; --surface:#171C28; --surface-2:#1E2433;
+  --ink:#EDE7D9; --ink-2:#C9CEDA; --muted:#8B93A4; --line:#262E3D;
+  --rail:rgba(23,28,40,.62); --glass:rgba(20,25,37,.78);
+  --scrim:rgba(0,0,0,.6);
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;padding:0;height:100%}
+body{
+  font-family:var(--font-ui);
+  background:
+    radial-gradient(120% 60% at 50% -10%, var(--bg-2), transparent 60%),
+    var(--bg);
+  color:var(--ink); overflow:hidden;
+  font-size:calc(16px * var(--fs));
+  -webkit-font-smoothing:antialiased; text-rendering:optimizeLegibility;
+  transition:background var(--med) var(--ease), color var(--med) var(--ease);
+}
+button{font-family:inherit;cursor:pointer;border:0;background:none;color:inherit}
+input,textarea{font-family:inherit}
+::-webkit-scrollbar{width:0;height:0}
+.svg{width:24px;height:24px;display:inline-block;fill:none;flex:none}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+
+/* ============================ App Shell ============================ */
+#app{
+  position:relative; width:100%; max-width:var(--app-max); height:100dvh;
+  margin:0 auto; background:var(--bg); overflow:hidden; isolation:isolate;
+  box-shadow:0 0 0 1px var(--line), var(--shadow-2);
+}
+@media(min-width:520px){ #app{height:min(920px,96dvh); margin:2dvh auto; border-radius:34px} body{display:grid;place-items:center;
+  background:
+    radial-gradient(60% 50% at 20% 0%, color-mix(in srgb,var(--teal) 16%,transparent), transparent 60%),
+    radial-gradient(60% 50% at 90% 100%, color-mix(in srgb,var(--gold) 14%,transparent), transparent 60%),
+    var(--bg);} }
+
+/* ---- screens ---- */
+.screen{position:absolute;inset:0;display:flex;flex-direction:column;
+  opacity:0;visibility:hidden;transform:translateY(8px);
+  transition:opacity var(--med) var(--ease),transform var(--med) var(--ease),visibility var(--med);
+  overflow:hidden}
+.screen.active{opacity:1;visibility:visible;transform:none;z-index:2}
+.scroll{flex:1;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;
+  scroll-behavior:smooth;overscroll-behavior:contain}
+#notifList,#profileScroll{padding-bottom:calc(74px + env(safe-area-inset-bottom))}
+
+/* ---- top bar ---- */
+.topbar{height:58px;flex:none;display:flex;align-items:center;gap:10px;padding:0 16px;
+  background:var(--glass);backdrop-filter:blur(18px) saturate(1.4);
+  border-bottom:1px solid var(--line);position:relative;z-index:5}
+.topbar .ttl{font-weight:800;font-size:1.18rem;letter-spacing:-.2px}
+.topbar .ttl small{font-weight:500;color:var(--muted);font-size:.7rem;display:block;margin-top:-2px}
+.iconbtn{width:42px;height:42px;border-radius:50%;display:grid;place-items:center;color:var(--ink);
+  transition:background var(--fast),transform var(--fast)}
+.iconbtn:active{transform:scale(.9)}
+.iconbtn:hover{background:color-mix(in srgb,var(--ink) 8%,transparent)}
+.grow{flex:1}
+.brandrow{display:flex;align-items:center;gap:9px}
+.brandrow .mk{width:34px;height:34px}
+.dot-badge{position:absolute;top:9px;inset-inline-end:9px;width:8px;height:8px;border-radius:50%;
+  background:var(--rose);box-shadow:0 0 0 2px var(--glass)}
+
+/* ---- bottom nav ---- */
+.botnav{position:absolute;inset-inline:0;bottom:0;height:calc(64px + env(safe-area-inset-bottom));
+  display:flex;align-items:center;justify-content:space-around;
+  padding-bottom:env(safe-area-inset-bottom);
+  background:var(--glass);backdrop-filter:blur(20px) saturate(1.5);
+  border-top:1px solid var(--line);z-index:6}
+.navb{flex:1;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;
+  color:var(--muted);font-size:.62rem;font-weight:600;transition:color var(--fast)}
+.navb .svg{width:25px;height:25px;transition:transform var(--fast)}
+.navb.active{color:var(--gold)}
+.navb.active .svg{transform:translateY(-1px) scale(1.06)}
+.navb:active .svg{transform:scale(.85)}
+.fab{flex:none;width:56px;height:56px;margin-top:-22px;border-radius:20px;
+  background:linear-gradient(135deg,var(--gold-2),var(--gold));color:#1A1306;
+  display:grid;place-items:center;box-shadow:0 8px 22px color-mix(in srgb,var(--gold) 55%,transparent);
+  transition:transform var(--fast)}
+.fab .svg{width:30px;height:30px;stroke-width:2.4}
+.fab:active{transform:scale(.9) rotate(90deg)}
+
+/* ============================ Buttons / chips ============================ */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;font-weight:700;
+  padding:13px 20px;border-radius:var(--r);font-size:.95rem;transition:transform var(--fast),filter var(--fast),background var(--fast);width:100%}
+.btn:active{transform:scale(.97)}
+.btn-gold{background:linear-gradient(135deg,var(--gold-2),var(--gold));color:#1A1306;box-shadow:var(--shadow-1)}
+.btn-gold:hover{filter:brightness(1.05)}
+.btn-ghost{background:color-mix(in srgb,var(--ink) 7%,transparent);color:var(--ink)}
+.btn-line{background:var(--surface);border:1.5px solid var(--line);color:var(--ink)}
+.chip{display:inline-flex;align-items:center;gap:6px;padding:8px 14px;border-radius:999px;font-size:.82rem;font-weight:600;
+  background:color-mix(in srgb,var(--ink) 6%,transparent);color:var(--ink-2);white-space:nowrap;transition:var(--fast)}
+.chip.active{background:linear-gradient(135deg,var(--gold-2),var(--gold));color:#1A1306}
+.chip:active{transform:scale(.94)}
+
+/* ============================ Onboarding ============================ */
+#screen-onboarding{background:
+  radial-gradient(80% 50% at 50% 0%, color-mix(in srgb,var(--teal) 26%,transparent), transparent 60%),
+  linear-gradient(180deg,var(--bg),var(--bg-2));z-index:30}
+.ob-wrap{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:28px;text-align:center;gap:18px}
+.ob-mark{width:96px;height:96px;filter:drop-shadow(0 12px 30px color-mix(in srgb,var(--gold) 40%,transparent));
+  animation:floaty 5s var(--ease) infinite}
+@keyframes floaty{50%{transform:translateY(-8px)}}
+.ob-title{font-family:var(--font-serif);font-size:2.9rem;font-weight:700;line-height:1.1;margin:0}
+.ob-sub{color:var(--muted);max-width:30ch;line-height:1.7;margin:0}
+.ob-verse{font-family:var(--font-serif);font-size:1.25rem;line-height:2;color:var(--ink-2);
+  background:var(--surface);border:1px solid var(--line);border-radius:var(--r-lg);padding:22px 20px;
+  box-shadow:var(--shadow-1);position:relative;overflow:hidden;width:100%;max-width:380px;min-height:120px;
+  display:flex;flex-direction:column;justify-content:center;gap:8px}
+.ob-verse .att{font-family:var(--font-ui);font-size:.78rem;color:var(--gold);font-weight:700}
+.ob-verse .deco{position:absolute;inset:0;opacity:.05;color:var(--ink);pointer-events:none}
+.ob-actions{width:100%;max-width:380px;display:flex;flex-direction:column;gap:10px;margin-top:6px}
+.ob-hint{font-size:.74rem;color:var(--muted)}
+.auth-providers{display:flex;flex-direction:column;gap:10px;width:100%}
+
+/* ============================ Stories carousel ============================ */
+.stories{flex:none;display:flex;gap:14px;padding:14px 16px;overflow-x:auto;scroll-snap-type:x proximity;
+  border-bottom:1px solid var(--line)}
+.story{flex:none;width:64px;display:flex;flex-direction:column;align-items:center;gap:6px;scroll-snap-align:start}
+.story .ring{width:62px;height:62px;border-radius:50%;padding:3px;
+  background:conic-gradient(from 210deg,var(--gold-2),var(--teal-2),var(--gold),var(--gold-2));
+  transition:transform var(--fast)}
+.story.seen .ring{background:var(--line)}
+.story:active .ring{transform:scale(.92)}
+.story .av{width:100%;height:100%;border-radius:50%;border:2.5px solid var(--surface);overflow:hidden;background:var(--surface-2)}
+.story .nm{font-size:.66rem;color:var(--muted);max-width:64px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.story.add .ring{background:var(--line);display:grid;place-items:center}
+.story.add .av{display:grid;place-items:center;color:var(--gold)}
+
+/* ============================ Feed capsules ============================ */
+#feed{position:relative;padding:14px 14px 90px}
+.capsule{position:relative;border-radius:var(--r-xl);overflow:hidden;margin-bottom:18px;
+  box-shadow:var(--shadow-1);border:1px solid var(--line);background:var(--surface);
+  min-height:340px;display:flex;flex-direction:column;
+  animation:rise var(--med) var(--ease) both}
+@keyframes rise{from{opacity:0;transform:translateY(14px)}}
+.cap-art{position:absolute;inset:0;z-index:0}
+.cap-art .pat{position:absolute;inset:0;opacity:.16;color:#fff;background-size:120px}
+.cap-grad{position:absolute;inset:0;z-index:1}
+.cap-body{position:relative;z-index:2;flex:1;display:flex;flex-direction:column;
+  padding:20px 20px 18px;padding-inline-start:64px}
+.cap-type{align-self:flex-start;font-size:.7rem;font-weight:800;padding:5px 12px;border-radius:999px;
+  background:rgba(255,255,255,.18);color:#fff;backdrop-filter:blur(6px);letter-spacing:.3px}
+.cap-text{flex:1;display:flex;align-items:center}
+.cap-text p{font-family:var(--font-serif);font-size:1.5rem;line-height:2.05;color:#fff;margin:0;
+  text-shadow:0 2px 18px rgba(0,0,0,.35);white-space:pre-line;font-weight:700}
+.cap-title{font-family:var(--font-serif);color:#fff;font-size:1.05rem;font-weight:700;opacity:.95;margin:0 0 4px}
+.cap-foot{display:flex;align-items:center;gap:10px;margin-top:14px}
+.cap-foot .av{width:38px;height:38px;border-radius:50%;overflow:hidden;border:2px solid rgba(255,255,255,.6);flex:none}
+.cap-foot .who{color:#fff;font-weight:700;font-size:.86rem;display:flex;align-items:center;gap:4px}
+.cap-foot .who .svg{width:15px;height:15px;color:var(--gold-2)}
+.cap-foot .meta{color:rgba(255,255,255,.75);font-size:.72rem}
+.cap-meter{margin-inline-start:auto;font-size:.7rem;color:#fff;background:rgba(0,0,0,.22);padding:4px 10px;border-radius:999px}
+
+/* action rail (Floating Vertical Sidebar) */
+.rail{position:absolute;z-index:3;inset-inline-start:10px;bottom:18px;display:flex;flex-direction:column;gap:14px;align-items:center}
+.rail .act{display:flex;flex-direction:column;align-items:center;gap:3px;color:#fff}
+.rail .act .svg{width:27px;height:27px;filter:drop-shadow(0 2px 6px rgba(0,0,0,.4));transition:transform var(--fast)}
+.rail .act b{font-size:.66rem;font-weight:700;text-shadow:0 1px 4px rgba(0,0,0,.4)}
+.rail .act:active .svg{transform:scale(.8)}
+.rail .act.on .svg{color:var(--rose);transform:scale(1.05)}
+.rail .act.on.bm .svg{color:var(--gold-2)}
+@keyframes pop{0%{transform:scale(1)}40%{transform:scale(1.4)}100%{transform:scale(1.05)}}
+.rail .act.pulse .svg{animation:pop .4s var(--ease)}
+
+/* ============================ Explore / Encyclopedia ============================ */
+.searchbar{flex:none;padding:12px 16px;display:flex;gap:10px;align-items:center}
+.searchbox{flex:1;display:flex;align-items:center;gap:10px;background:var(--surface);border:1.5px solid var(--line);
+  border-radius:var(--r);padding:11px 14px;color:var(--muted);transition:border var(--fast),box-shadow var(--fast)}
+.searchbox:focus-within{border-color:var(--gold);box-shadow:0 0 0 4px color-mix(in srgb,var(--gold) 16%,transparent)}
+.searchbox input{flex:1;border:0;background:none;outline:none;color:var(--ink);font-size:.95rem}
+.filterscroll{flex:none;display:flex;gap:8px;padding:0 16px 12px;overflow-x:auto}
+.trendcard{margin:0 16px 16px;border-radius:var(--r-lg);padding:16px 18px;color:#fff;position:relative;overflow:hidden;
+  background:linear-gradient(135deg,var(--teal),#15403A)}
+.trendcard .t{font-size:.74rem;opacity:.85;display:flex;align-items:center;gap:6px;font-weight:700}
+.trendcard .v{font-family:var(--font-serif);font-size:1.4rem;font-weight:700;margin-top:4px}
+.enc-grid{padding:0 16px 90px;display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.enc-card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:16px;
+  display:flex;flex-direction:column;gap:8px;min-height:128px;box-shadow:var(--shadow-1);transition:transform var(--fast)}
+.enc-card:active{transform:scale(.97)}
+.enc-card .ico{width:40px;height:40px;border-radius:12px;display:grid;place-items:center;color:#fff;
+  background:linear-gradient(135deg,var(--gold-2),var(--gold))}
+.enc-card.k-poet .ico{background:linear-gradient(135deg,var(--teal-2),var(--teal))}
+.enc-card.k-term .ico{background:linear-gradient(135deg,#9C6ADE,#6D4AA8)}
+.enc-card.k-meter .ico{background:linear-gradient(135deg,var(--maroon),#A84438)}
+.enc-card h4{margin:0;font-size:.98rem}
+.enc-card p{margin:0;font-size:.78rem;color:var(--muted);line-height:1.6;
+  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.enc-kind{font-size:.66rem;color:var(--gold);font-weight:700}
+
+/* ============================ Studio ============================ */
+.studio{padding:16px 16px 90px;display:flex;flex-direction:column;gap:16px}
+.field label{display:block;font-weight:700;font-size:.84rem;margin-bottom:7px;color:var(--ink-2)}
+.input,.textarea{width:100%;background:var(--surface);border:1.5px solid var(--line);border-radius:var(--r);
+  padding:13px 14px;color:var(--ink);font-size:1rem;outline:none;transition:border var(--fast),box-shadow var(--fast)}
+.textarea{min-height:130px;resize:vertical;line-height:2;font-family:var(--font-serif);font-size:1.25rem}
+.input:focus,.textarea:focus{border-color:var(--gold);box-shadow:0 0 0 4px color-mix(in srgb,var(--gold) 16%,transparent)}
+.counter{font-size:.72rem;color:var(--muted);text-align:start;margin-top:5px}
+.counter.warn{color:var(--maroon)}
+.preview-wrap{border-radius:var(--r-lg);overflow:hidden;box-shadow:var(--shadow-1);border:1px solid var(--line);background:#000}
+#studioCanvas{width:100%;display:block;aspect-ratio:4/5}
+.themes{display:flex;gap:10px;overflow-x:auto;padding:2px}
+.theme-dot{flex:none;width:42px;height:42px;border-radius:14px;border:2.5px solid transparent;transition:var(--fast);position:relative}
+.theme-dot.active{border-color:var(--ink);transform:scale(1.06)}
+.typetabs{display:flex;gap:8px}
+.typetab{flex:1;padding:11px;border-radius:var(--r);background:var(--surface);border:1.5px solid var(--line);
+  font-weight:700;color:var(--muted);font-size:.86rem;display:flex;align-items:center;justify-content:center;gap:6px;transition:var(--fast)}
+.typetab.active{border-color:var(--gold);color:var(--ink);background:color-mix(in srgb,var(--gold) 10%,transparent)}
+
+/* ============================ Profile ============================ */
+.prof-head{padding:20px 16px 8px;display:flex;flex-direction:column;align-items:center;gap:10px;position:relative}
+.prof-cover{position:absolute;inset:0;height:120px;z-index:0;overflow:hidden;
+  background:linear-gradient(135deg,var(--teal),#15403A)}
+.prof-cover .pat{position:absolute;inset:0;opacity:.18;color:#fff;background-size:120px}
+.prof-av{position:relative;z-index:1;width:96px;height:96px;border-radius:50%;border:4px solid var(--surface);
+  overflow:hidden;background:var(--surface-2);box-shadow:var(--shadow-1);margin-top:50px}
+.prof-name{position:relative;z-index:1;font-size:1.3rem;font-weight:800;display:flex;align-items:center;gap:6px}
+.prof-name .svg{width:20px;height:20px;color:var(--gold)}
+.prof-handle{position:relative;z-index:1;color:var(--muted);font-size:.86rem;margin-top:-6px}
+.prof-bio{position:relative;z-index:1;text-align:center;max-width:34ch;line-height:1.7;color:var(--ink-2);font-size:.9rem}
+.badges{position:relative;z-index:1;display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
+.bdg{display:inline-flex;align-items:center;gap:5px;padding:6px 12px;border-radius:999px;font-size:.74rem;font-weight:700;
+  background:color-mix(in srgb,var(--gold) 16%,transparent);color:var(--gold)}
+.bdg .svg{width:15px;height:15px}
+.stats{position:relative;z-index:1;display:flex;gap:8px;width:100%;margin-top:6px}
+.stat{flex:1;text-align:center;background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:12px 6px}
+.stat b{display:block;font-size:1.2rem;font-weight:800}
+.stat span{font-size:.7rem;color:var(--muted)}
+.tabs{display:flex;border-bottom:1px solid var(--line);position:sticky;top:0;background:var(--surface);z-index:4}
+.tab{flex:1;padding:14px;text-align:center;font-weight:700;color:var(--muted);font-size:.88rem;position:relative}
+.tab.active{color:var(--ink)}
+.tab.active::after{content:"";position:absolute;bottom:0;inset-inline:24%;height:3px;border-radius:3px 3px 0 0;
+  background:linear-gradient(90deg,var(--gold-2),var(--gold))}
+.mini-grid{padding:14px;display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.mini{border-radius:var(--r);overflow:hidden;aspect-ratio:4/5;position:relative;border:1px solid var(--line);
+  display:flex;align-items:center;padding:14px;color:#fff}
+.mini p{font-family:var(--font-serif);font-size:.92rem;line-height:1.8;margin:0;white-space:pre-line;
+  display:-webkit-box;-webkit-line-clamp:5;-webkit-box-orient:vertical;overflow:hidden;text-shadow:0 1px 8px rgba(0,0,0,.4)}
+
+/* ============================ Settings ============================ */
+.settings{padding:14px 16px 90px;display:flex;flex-direction:column;gap:22px}
+.set-group{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-lg);overflow:hidden;box-shadow:var(--shadow-1)}
+.set-group .gh{padding:12px 16px 6px;font-size:.74rem;font-weight:800;color:var(--gold);letter-spacing:.4px}
+.set-row{display:flex;align-items:center;gap:12px;padding:14px 16px;border-top:1px solid var(--line)}
+.set-row:first-of-type{border-top:0}
+.set-row .ic{width:38px;height:38px;border-radius:11px;display:grid;place-items:center;
+  background:color-mix(in srgb,var(--ink) 6%,transparent);color:var(--ink-2);flex:none}
+.set-row .lbl{flex:1}.set-row .lbl b{display:block;font-size:.94rem}.set-row .lbl span{font-size:.74rem;color:var(--muted)}
+.switch{width:48px;height:28px;border-radius:999px;background:var(--line);position:relative;transition:background var(--fast);flex:none}
+.switch::after{content:"";position:absolute;top:3px;inset-inline-start:3px;width:22px;height:22px;border-radius:50%;
+  background:#fff;transition:transform var(--fast);box-shadow:0 1px 3px rgba(0,0,0,.3)}
+.switch.on{background:linear-gradient(135deg,var(--gold-2),var(--gold))}
+.switch.on::after{transform:translateX(-20px)}
+[dir=rtl] .switch.on::after{transform:translateX(-20px)}
+.seg{display:flex;background:var(--surface-2);border-radius:var(--r);padding:4px;gap:4px}
+.seg button{flex:1;padding:8px;border-radius:11px;font-weight:700;font-size:.82rem;color:var(--muted)}
+.seg button.active{background:var(--surface);color:var(--ink);box-shadow:var(--shadow-1)}
+
+/* ============================ Sheets / Modal / Toast ============================ */
+.scrim{position:absolute;inset:0;background:var(--scrim);opacity:0;visibility:hidden;
+  transition:opacity var(--med),visibility var(--med);z-index:40;backdrop-filter:blur(2px)}
+.scrim.show{opacity:1;visibility:visible}
+.sheet{position:absolute;inset-inline:0;bottom:0;z-index:41;background:var(--surface);
+  border-radius:24px 24px 0 0;transform:translateY(101%);transition:transform var(--med) var(--ease);
+  max-height:86%;display:flex;flex-direction:column;box-shadow:var(--shadow-pop)}
+.sheet.show{transform:none}
+.sheet .grip{width:42px;height:5px;border-radius:5px;background:var(--line);margin:10px auto 4px}
+.sheet .sh-head{display:flex;align-items:center;padding:6px 16px 12px;border-bottom:1px solid var(--line)}
+.sheet .sh-head h3{margin:0;font-size:1.05rem;font-weight:800}
+.sheet .sh-body{padding:16px;overflow-y:auto}
+.comment{display:flex;gap:10px;padding:12px 0;border-bottom:1px solid var(--line)}
+.comment .av{width:38px;height:38px;border-radius:50%;overflow:hidden;flex:none;background:var(--surface-2)}
+.comment .c-main b{font-size:.86rem}.comment .c-main p{margin:3px 0 0;font-size:.9rem;line-height:1.6;color:var(--ink-2)}
+.comment .c-main span{font-size:.7rem;color:var(--muted)}
+.comment-bar{display:flex;gap:10px;padding:12px 16px;border-top:1px solid var(--line);align-items:center}
+.comment-bar input{flex:1;background:var(--surface-2);border:1px solid var(--line);border-radius:999px;padding:11px 16px;outline:none;color:var(--ink)}
+
+.entry-detail h2{font-family:var(--font-serif);margin:0 0 4px}
+.entry-detail .kind{color:var(--gold);font-weight:700;font-size:.78rem}
+.entry-detail .body{line-height:2;color:var(--ink-2);margin-top:14px;white-space:pre-line}
+
+#toast{position:absolute;inset-inline:0;bottom:84px;z-index:60;display:flex;flex-direction:column;align-items:center;gap:8px;pointer-events:none;padding:0 20px}
+.toast{background:var(--ink);color:var(--bg);padding:12px 18px;border-radius:999px;font-size:.86rem;font-weight:600;
+  box-shadow:var(--shadow-pop);display:flex;align-items:center;gap:8px;transform:translateY(16px);opacity:0;
+  transition:transform var(--med) var(--ease),opacity var(--med);max-width:100%}
+.toast.show{transform:none;opacity:1}
+.toast .svg{width:18px;height:18px;color:var(--gold-2)}
+
+/* ---- empty / loading states ---- */
+.empty{padding:50px 30px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:14px;color:var(--muted)}
+.empty img{width:170px;height:auto;color:var(--ink)}
+.empty h3{margin:0;color:var(--ink);font-size:1.1rem}
+.empty p{margin:0;line-height:1.7;max-width:30ch}
+.skeleton{border-radius:var(--r-xl);height:340px;margin-bottom:18px;
+  background:linear-gradient(100deg,var(--surface) 30%,var(--surface-2) 50%,var(--surface) 70%);
+  background-size:200% 100%;animation:shimmer 1.3s infinite;border:1px solid var(--line)}
+@keyframes shimmer{to{background-position:-200% 0}}
+.spin{width:34px;height:34px}
+
+/* splash */
+#splash{position:absolute;inset:0;z-index:90;display:grid;place-items:center;background:
+  radial-gradient(70% 50% at 50% 30%, #14403A, #0E1F25);transition:opacity .5s ease,visibility .5s}
+#splash.hide{opacity:0;visibility:hidden}
+#splash .s-in{display:flex;flex-direction:column;align-items:center;gap:14px}
+#splash .mk{width:104px;height:104px;animation:floaty 4s var(--ease) infinite}
+#splash .wm{font-family:var(--font-serif);font-size:2.6rem;color:var(--gold-soft);font-weight:700}
+#splash .ld{color:rgba(244,235,208,.7)}
+@media (prefers-reduced-motion:reduce){*{animation-duration:.001s!important;transition-duration:.06s!important}}
+</style>
+</head>
+<body data-theme="light">
+
+<div id="app">
+  <!-- ===================== SPLASH ===================== -->
+  <div id="splash"><div class="s-in">
+    <svg class="mk"><use href="assets/icons/sprite.svg#i-feather"></use></svg>
+    <div class="wm">روي</div>
+    <svg class="svg spin"><use href="assets/illustrations/loading.svg#"></use></svg>
+    <div class="ld">منصة الأدب والشعر…</div>
+  </div></div>
+
+  <!-- ===================== ONBOARDING ===================== -->
+  <section class="screen" id="screen-onboarding">
+    <div class="ob-wrap">
+      <svg class="ob-mark"><use href="assets/icons/sprite.svg#i-feather"></use></svg>
+      <h1 class="ob-title">روي</h1>
+      <p class="ob-sub">حيث يلتقي الشعرُ بالحكاية. اقرأ، اكتب، واحفظ روائع الأدب العربي.</p>
+      <div class="ob-verse" id="obVerse" role="button" tabindex="0" aria-label="اسحب لاقتباس آخر">
+        <svg class="deco" aria-hidden="true" style="width:100%;height:100%"><use href="assets/patterns/arabesque.svg#arab"></use></svg>
+      </div>
+      <p class="ob-hint">انقر على البطاقة لاقتباسٍ آخر ✦</p>
+      <div class="ob-actions" id="obActions"></div>
+    </div>
+  </section>
+
+  <!-- ===================== HOME ===================== -->
+  <section class="screen" id="screen-home">
+    <header class="topbar">
+      <div class="brandrow"><svg class="mk svg" style="width:34px;height:34px"><use href="assets/brand/logo-mark.svg#"></use></svg>
+        <div class="ttl">روي<small>تغذيتك الأدبية</small></div></div>
+      <div class="grow"></div>
+      <button class="iconbtn" id="goNotif" aria-label="الإشعارات" style="position:relative">
+        <svg class="svg"><use href="assets/icons/sprite.svg#i-bell"></use></svg><span class="dot-badge" id="notifDot"></span></button>
+    </header>
+    <div class="scroll" id="homeScroll">
+      <div class="stories" id="stories"></div>
+      <div id="feed"></div>
+    </div>
+  </section>
+
+  <!-- ===================== EXPLORE ===================== -->
+  <section class="screen" id="screen-explore">
+    <header class="topbar"><div class="ttl">الموسوعة<small>الشعراء · المصطلحات · البحور</small></div></header>
+    <div class="searchbar"><div class="searchbox">
+      <svg class="svg" style="width:20px"><use href="assets/icons/sprite.svg#i-explore"></use></svg>
+      <input id="searchInput" type="search" placeholder="ابحث عن شاعر أو قصيدة أو مصطلح…" enterkeyhint="search" />
+    </div></div>
+    <div class="filterscroll" id="encFilters"></div>
+    <div class="scroll">
+      <div class="trendcard" id="trendCard"></div>
+      <div class="enc-grid" id="encGrid"></div>
+    </div>
+  </section>
+
+  <!-- ===================== STUDIO ===================== -->
+  <section class="screen" id="screen-studio">
+    <header class="topbar">
+      <button class="iconbtn" data-nav="home" aria-label="رجوع"><svg class="svg"><use href="assets/icons/sprite.svg#i-back"></use></svg></button>
+      <div class="ttl">الاستوديو<small>محرّك القصائد</small></div>
+      <div class="grow"></div>
+      <button class="iconbtn" id="downloadCard" aria-label="تنزيل البطاقة"><svg class="svg"><use href="assets/icons/sprite.svg#i-qr"></use></svg></button>
+    </header>
+    <div class="scroll"><div class="studio">
+      <div class="preview-wrap"><canvas id="studioCanvas" width="800" height="1000"></canvas></div>
+      <div class="typetabs" id="typeTabs">
+        <button class="typetab active" data-type="poem"><svg class="svg" style="width:18px"><use href="assets/icons/sprite.svg#i-poetry"></use></svg>قصيدة</button>
+        <button class="typetab" data-type="quote"><svg class="svg" style="width:18px"><use href="assets/icons/sprite.svg#i-feather"></use></svg>اقتباس</button>
+        <button class="typetab" data-type="story"><svg class="svg" style="width:18px"><use href="assets/icons/sprite.svg#i-encyclopedia"></use></svg>قصة</button>
+      </div>
+      <div class="field"><label for="stTitle">العنوان (اختياري)</label>
+        <input class="input" id="stTitle" maxlength="60" placeholder="عنوان القصيدة…" /></div>
+      <div class="field"><label for="stBody">النص</label>
+        <textarea class="textarea" id="stBody" maxlength="600" dir="rtl" placeholder="اُكتب بيتك أو نصّك هنا…"></textarea>
+        <div class="counter" id="stCount">0 / 600</div></div>
+      <div class="field"><label>الثيم البصري</label><div class="themes" id="themePicker"></div></div>
+      <button class="btn btn-gold" id="publishBtn"><svg class="svg" style="width:20px"><use href="assets/icons/sprite.svg#i-send"></use></svg>نشر في روي</button>
+    </div></div>
+  </section>
+
+  <!-- ===================== NOTIFICATIONS ===================== -->
+  <section class="screen" id="screen-notif">
+    <header class="topbar">
+      <button class="iconbtn" data-nav="home" aria-label="رجوع"><svg class="svg"><use href="assets/icons/sprite.svg#i-back"></use></svg></button>
+      <div class="ttl">الإشعارات</div></header>
+    <div class="scroll" id="notifList"></div>
+  </section>
+
+  <!-- ===================== PROFILE ===================== -->
+  <section class="screen" id="screen-profile">
+    <header class="topbar">
+      <div class="ttl">حسابي</div><div class="grow"></div>
+      <button class="iconbtn" data-nav="settings" aria-label="الإعدادات"><svg class="svg"><use href="assets/icons/sprite.svg#i-settings"></use></svg></button>
+    </header>
+    <div class="scroll" id="profileScroll"></div>
+  </section>
+
+  <!-- ===================== SETTINGS ===================== -->
+  <section class="screen" id="screen-settings">
+    <header class="topbar">
+      <button class="iconbtn" data-nav="profile" aria-label="رجوع"><svg class="svg"><use href="assets/icons/sprite.svg#i-back"></use></svg></button>
+      <div class="ttl">الإعدادات</div></header>
+    <div class="scroll"><div class="settings" id="settingsBody"></div></div>
+  </section>
+
+  <!-- ===================== BOTTOM NAV ===================== -->
+  <nav class="botnav" id="botnav">
+    <button class="navb active" data-nav="home"><svg class="svg"><use href="assets/icons/sprite.svg#i-home"></use></svg>الرئيسية</button>
+    <button class="navb" data-nav="explore"><svg class="svg"><use href="assets/icons/sprite.svg#i-encyclopedia"></use></svg>الموسوعة</button>
+    <button class="fab" data-nav="studio" aria-label="إنشاء"><svg class="svg"><use href="assets/icons/sprite.svg#i-studio"></use></svg></button>
+    <button class="navb" data-nav="notif"><svg class="svg"><use href="assets/icons/sprite.svg#i-bell"></use></svg>الإشعارات</button>
+    <button class="navb" data-nav="profile"><svg class="svg"><use href="assets/icons/sprite.svg#i-profile"></use></svg>حسابي</button>
+  </nav>
+
+  <!-- ===================== SHEETS / SCRIM / TOAST ===================== -->
+  <div class="scrim" id="scrim"></div>
+  <div class="sheet" id="commentSheet">
+    <div class="grip"></div>
+    <div class="sh-head"><h3>التعليقات</h3></div>
+    <div class="sh-body" id="commentList"></div>
+    <div class="comment-bar">
+      <input id="commentInput" placeholder="أضف تعليقًا…" enterkeyhint="send" />
+      <button class="iconbtn" id="commentSend" aria-label="إرسال"><svg class="svg" style="color:var(--gold)"><use href="assets/icons/sprite.svg#i-send"></use></svg></button>
+    </div>
+  </div>
+  <div class="sheet" id="entrySheet">
+    <div class="grip"></div>
+    <div class="sh-head"><h3>الموسوعة</h3></div>
+    <div class="sh-body entry-detail" id="entryBody"></div>
+  </div>
+  <div id="toast"></div>
+</div>
+
+<script src="config.js"></script>
+<script type="module" src="app.js"></script>
+</body>
+</html>
