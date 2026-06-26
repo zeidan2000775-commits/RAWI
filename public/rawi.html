@@ -359,6 +359,50 @@ input,textarea{font-family:inherit}
 #splash .mk{width:104px;height:104px;animation:floaty 4s var(--ease) infinite}
 #splash .wm{font-family:var(--font-serif);font-size:2.6rem;color:var(--gold-soft);font-weight:700}
 #splash .ld{color:rgba(244,235,208,.7)}
+/* ============================ Luxury Enhancements ============================ */
+/* خلفية شفقية حيّة (Aurora) خلف المحتوى */
+#app::before{content:"";position:absolute;inset:-10%;z-index:0;pointer-events:none;opacity:.55;
+  background:
+    radial-gradient(38% 28% at 16% 12%, color-mix(in srgb,var(--teal) 26%,transparent), transparent 70%),
+    radial-gradient(42% 30% at 86% 20%, color-mix(in srgb,var(--gold) 24%,transparent), transparent 70%),
+    radial-gradient(48% 34% at 72% 96%, color-mix(in srgb,var(--burgundy) 22%,transparent), transparent 72%);
+  filter:blur(26px);animation:aurora 20s var(--ease) infinite alternate}
+@keyframes aurora{50%{transform:translate3d(0,-3%,0) scale(1.06)}}
+[data-theme="dark"] #app::before{opacity:.4}
+
+/* بريق علوي ناعم + حافة شعرية للبطاقة */
+.cap-art::after{content:"";position:absolute;inset:0;
+  background:radial-gradient(120% 62% at 50% 0%,rgba(255,255,255,.15),transparent 55%)}
+.capsule{box-shadow:var(--elev-float),inset 0 0 0 1px rgba(255,255,255,.06)}
+.cap-type{display:inline-flex;align-items:center;gap:7px}
+.cap-type::before{content:"";width:5px;height:5px;border-radius:50%;background:var(--gold-2);box-shadow:0 0 8px var(--gold-2)}
+
+/* هالة نشطة خلف أيقونة التنقّل */
+.navb.active{background:radial-gradient(58% 78% at 50% 42%,color-mix(in srgb,var(--gold) 18%,transparent),transparent 72%)}
+
+/* هالة نابضة حول زر الإنشاء */
+.fab{position:relative}
+.fab::after{content:"";position:absolute;inset:-7px;border-radius:24px;z-index:-1;
+  background:radial-gradient(closest-side,color-mix(in srgb,var(--gold) 50%,transparent),transparent);
+  opacity:.55;animation:fabpulse 2.8s var(--ease) infinite}
+@keyframes fabpulse{50%{opacity:.2;transform:scale(1.14)}}
+
+/* وميض ذهبي على اسم العلامة في شاشة البداية */
+#splash .wm{background:linear-gradient(100deg,var(--gold-soft) 10%,#fff 35%,var(--gold-2) 60%,var(--gold-soft) 90%);
+  background-size:220% 100%;-webkit-background-clip:text;background-clip:text;color:transparent;
+  animation:shimmerText 2.6s linear infinite}
+@keyframes shimmerText{to{background-position:-220% 0}}
+
+/* تدرّج ذهبي على عنوان الترحيب */
+.ob-title{background:linear-gradient(118deg,var(--ink) 30%,var(--gold) 130%);
+  -webkit-background-clip:text;background-clip:text;color:transparent}
+[data-theme="dark"] .ob-title{background:linear-gradient(118deg,var(--gold-soft),#fff 55%,var(--gold-2));
+  -webkit-background-clip:text;background-clip:text;color:transparent}
+
+/* نبض هادئ لحلقات القصص غير المشاهَدة */
+.story:not(.seen):not(.add) .ring{animation:storypulse 3s var(--ease) infinite}
+@keyframes storypulse{0%,100%{box-shadow:0 0 0 0 transparent}55%{box-shadow:0 0 0 5px color-mix(in srgb,var(--gold) 16%,transparent)}}
+
 @media (prefers-reduced-motion:reduce){*{animation-duration:.001s!important;transition-duration:.06s!important}}
 </style>
 </head>

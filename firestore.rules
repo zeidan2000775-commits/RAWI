@@ -1,92 +1,65 @@
 rules_version = '2';
 // ======================================================================
-//  روي (RAWI) — Firestore Security Rules
-//  مبدأ: الكتابة تتطلب مصادقة، الحقول الحسّاسة للخادم فقط، العدّادات تتغيّر ±1،
-//  Kill Switch عام (config/system.readOnly) يوقف كل الكتابة.
+//  روي (RAWI) — Firestore Security Rules (مبسّطة)
+//  - القراءة عامة للمحتوى المنشور.
+//  - المولّد (Admin SDK) يكتب المحتوى ويتجاوز هذه القواعد.
+//  - العميل: كتابة محدودة (نشر/إعجاب/تعليق) تتطلب تسجيل دخول.
+//  - Kill Switch عام عبر config/system.readOnly.
 // ======================================================================
 service cloud.firestore {
   match /databases/{db}/documents {
 
     function signedIn() { return request.auth != null; }
     function isOwner(uid) { return signedIn() && request.auth.uid == uid; }
-    function isAdmin() {
-      return signedIn() &&
-        exists(/databases/$(db)/documents/users/$(request.auth.uid)) &&
-        get(/databases/$(db)/documents/users/$(request.auth.uid)).data.role in ['admin','moderator'];
-    }
-    // النظام في وضع القراءة فقط؟ (Read-Only Kill Switch)
     function writable() {
       return !exists(/databases/$(db)/documents/config/system) ||
              get(/databases/$(db)/documents/config/system).data.readOnly != true;
     }
-    // عدّاد تغيّر بمقدار ±1 فقط (Anti-Cheat)
-    function counterDelta(field) {
-      return request.resource.data[field] == resource.data[field] + 1 ||
-             request.resource.data[field] == resource.data[field] - 1;
+    function onlyCounts() {
+      return request.resource.data.diff(resource.data).affectedKeys().hasOnly(['counts','updatedAt']);
     }
 
-    // ---------- config (قراءة عامة، كتابة للخادم/الأدمن فقط) ----------
-    match /config/{doc} {
-      allow read: if true;
-      allow write: if isAdmin() && writable();
-    }
+    // إعدادات عامة — قراءة للجميع، الكتابة للمولّد (Admin) فقط
+    match /config/{doc} { allow read: if true; allow write: if false; }
 
-    // ---------- usernames (حجز فريد) ----------
+    // حجز أسماء المستخدمين الفريدة
     match /usernames/{name} {
       allow read: if true;
-      allow create: if signedIn() && writable()
-        && request.resource.data.uid == request.auth.uid;
-      allow update, delete: if false; // لا يُعاد استخدام الاسم من العميل
+      allow create: if signedIn() && writable() && request.resource.data.uid == request.auth.uid;
+      allow update, delete: if false;
     }
 
-    // ---------- users ----------
+    // المستخدمون
     match /users/{uid} {
       allow read: if true;
-      allow create: if isOwner(uid) && writable()
-        && !('role' in request.resource.data ? request.resource.data.role != 'user' : false);
-      allow update: if writable() && isOwner(uid)
-        // الحقول الحسّاسة لا تُعدَّل من العميل
+      allow create: if isOwner(uid) && writable();
+      allow update: if isOwner(uid) && writable()
         && request.resource.data.role == resource.data.role
         && request.resource.data.badges == resource.data.badges
-        && request.resource.data.isVerified == resource.data.isVerified
-        && request.resource.data.isShadowBanned == resource.data.isShadowBanned;
-      allow update: if isAdmin() && writable(); // الأدمن/الخادم: كل الحقول
+        && request.resource.data.isVerified == resource.data.isVerified;
       allow delete: if false;
-
-      match /bookmarks/{postId} {
-        allow read, write: if isOwner(uid) && writable();
-      }
-      match /following/{target} {
-        allow read: if true;
-        allow write: if isOwner(uid) && writable();
-      }
+      match /bookmarks/{postId} { allow read, write: if isOwner(uid) && writable(); }
+      match /following/{t}      { allow read: if true; allow write: if isOwner(uid) && writable(); }
     }
 
-    // ---------- posts ----------
+    // المنشورات (يولّدها الذكاء الاصطناعي أو ينشرها المستخدم)
     match /posts/{postId} {
-      allow read: if resource.data.status == 'published' || isAdmin()
+      allow read: if resource.data.status == 'published'
                   || (signedIn() && resource.data.authorId == request.auth.uid);
       allow create: if signedIn() && writable()
         && request.resource.data.authorId == request.auth.uid
-        && request.resource.data.body is string
-        && request.resource.data.body.size() <= 600
+        && request.resource.data.body is string && request.resource.data.body.size() <= 600
         && request.resource.data.createdAt == request.time;
-      // تحديث المالك (محتواه) أو الأدمن
-      allow update: if writable() && (
-        (isOwner(resource.data.authorId)) || isAdmin() ||
-        // أي مستخدم مسجّل يستطيع تعديل العدّادات فقط بمقدار ±1
-        (signedIn() &&
-          request.resource.data.diff(resource.data).affectedKeys().hasOnly(['counts']))
-      );
-      allow delete: if false; // حذف ناعم فقط عبر update isDeleted
+      // المالك يعدّل محتواه، وأي مسجّل يعدّل العدّادات فقط
+      allow update: if writable() && ( isOwner(resource.data.authorId) || (signedIn() && onlyCounts()) );
+      allow delete: if false;
 
       match /comments/{cid} {
         allow read: if true;
         allow create: if signedIn() && writable()
           && request.resource.data.authorId == request.auth.uid
           && request.resource.data.body.size() <= 500;
-        allow update: if isOwner(resource.data.authorId) || isAdmin();
-        allow delete: if isOwner(resource.data.authorId) || isAdmin();
+        allow update, delete: if isOwner(resource.data.authorId);
       }
       match /likes/{uid} {
         allow read: if true;
@@ -94,39 +67,18 @@ service cloud.firestore {
       }
     }
 
-    // ---------- stories ----------
+    // القصص اليومية
     match /stories/{sid} {
       allow read: if true;
-      allow create: if signedIn() && writable()
-        && request.resource.data.authorId == request.auth.uid;
-      allow update: if writable() && signedIn()
-        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['views']);
-      allow delete: if isOwner(resource.data.authorId) || isAdmin();
+      allow create: if signedIn() && writable() && request.resource.data.authorId == request.auth.uid;
+      allow update: if writable() && signedIn() && onlyCounts();
+      allow delete: if isOwner(resource.data.authorId);
     }
 
-    // ---------- encyclopedia (قراءة عامة، كتابة للخادم/الورّاق فقط) ----------
-    match /encyclopedia/{eid} {
-      allow read: if true;
-      allow write: if isAdmin() && writable();
-    }
+    // الموسوعة (يكتبها المولّد فقط)
+    match /encyclopedia/{eid} { allow read: if true; allow write: if false; }
 
-    // ---------- notifications (لصاحبها) ----------
-    match /notifications/{uid}/items/{nid} {
-      allow read, update: if isOwner(uid);
-      allow create: if isAdmin(); // الخادم فقط يُنشئ الإشعارات
-      allow delete: if isOwner(uid);
-    }
-
-    // ---------- reports (إنشاء من المستخدم، قراءة للأدمن) ----------
-    match /reports/{rid} {
-      allow create: if signedIn() && writable()
-        && request.resource.data.reporterId == request.auth.uid;
-      allow read, update, delete: if isAdmin();
-    }
-
-    // ---------- pending_tasks + rate_limits (الخادم فقط) ----------
-    match /pending_tasks/{tid} { allow read, write: if isAdmin(); }
-    match /rate_limits/{rid}   { allow read: if isAdmin();
-      allow write: if isAdmin() || (signedIn() && rid.matches(request.auth.uid + '_.*')); }
+    // الإشعارات (لصاحبها)
+    match /notifications/{uid}/items/{nid} { allow read, write: if isOwner(uid); }
   }
 }

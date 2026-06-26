@@ -1,0 +1,29 @@
+# روي — يشغّل المولّد تلقائيًا (الذكاء الاصطناعي → Firebase) بلا أي خادم.
+# يعمل كل 6 ساعات + يدويًا من تبويب Actions. أضف الأسرار في:
+#   Settings → Secrets and variables → Actions
+name: AI Generate (روي)
+
+on:
+  schedule:
+    - cron: '0 */6 * * *'   # كل 6 ساعات
+  workflow_dispatch:
+    inputs:
+      count:
+        description: 'عدد المنشورات'
+        default: '3'
+
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - run: npm install --no-audit --no-fund
+      - name: توليد المحتوى
+        env:
+          FIREBASE_SERVICE_ACCOUNT_JSON: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_JSON }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          GEMINI_MODEL: gemini-2.0-flash
+        run: node scripts/ai-generate.js ${{ github.event.inputs.count || '3' }}

@@ -1,53 +1,35 @@
 # خطة التنفيذ — روي (RAWI)
 
-أربع مراحل. كل مرحلة Production-Ready (لا TODO، لا placeholder).
+بنية مبسّطة: **واجهة + Firebase + مولّد ذكاء اصطناعي**. لا خادم دائم، لا بوتات.
 
-## PHASE 1 — FOUNDATION ✅
-- هيكل المشروع، الأسرار عبر `.env`، `.gitignore`.
-- وثائق المعمارية الأربع.
-- **الواجهة الأمامية الكاملة** `public/rawi.html` (الأولوية): App Shell، الثيمات (فاتح/داكن)،
-  الخطوط (Amiri/Cairo/Playfair/Inter)، التنقّل، كل الشاشات السبع، PWA (manifest + sw.js).
-- الهوية البصرية: **+20 ملف SVG** أصلي (شعار، أيقونات، رسومات حالات، أنماط، زخارف).
-- `firestore.rules` + `firestore.indexes.json` + `firebase.json`.
+## ما هو مُنجَز ✅
+1. **الواجهة (PWA)** `public/rawi.html` + `app.js`:
+   - 7 شاشات، وضع فاتح/داكن، خطوط Amiri/Cairo، Virtual Scroll، رسم Canvas، PWA.
+   - نظام تصميم فاخر: Aurora حيّة، Glassmorphism، ظلال ناعمة، حركة Spring، تدرّج «ملكي».
+   - **مربوطة بـ Firebase**: تقرأ المنشورات/الموسوعة/الاتجاه حيًّا، وتكتب النشر/الإعجاب.
+   - رجوع آمن لبيانات محلية عند غياب Firebase (تعمل دائمًا).
+2. **الهوية البصرية**: +45 رسم SVG أصلي + `home-feed.html` (عرض نظام التصميم).
+3. **المولّد** `scripts/ai-generate.js`: Gemini → Firestore (شعر/اقتباس/حكمة/موسوعة)
+   مع رجوع لمعجم تراثي عند غياب المفتاح.
+4. **الأتمتة** `.github/workflows/ai-generate.yml`: تشغيل تلقائي كل 6 ساعات (مجاني).
+5. **Firebase**: `firestore.rules` + `firestore.indexes.json` + `firebase.json`.
 
-## PHASE 2 — CONTENT & AI ✅
-- `server/` : Express API (health, feed, search, fcm, appcheck) + Gemini client (مع Fallback وKill Switch).
-- خط أنابيب المحتوى: `pending_tasks` queue + قفل تشاؤمي.
-- بوت **الراوي** (توليد) + بوت **الناقد** (بوابة جودة) + بوت **الوراق** (إثراء الموسوعة).
-
-## PHASE 3 — SOCIAL ✅
-- بوت **الحارس** (إشراف/بلاغات/Digests) + بوت **الخازن** (مسابقات/أوسمة/Feature Flag)
-  + بوت **الخبير** (اتجاهات/تحليلات).
-- لوحة تحكم Telegram (`adminPanel.js`) بأزرار Inline.
-- إشعارات FCM (Broadcast عند نشر محتوى جديد).
-
-## PHASE 4 — PRODUCTION ✅
-- إعداد النشر: `vercel.json` (الواجهة + API)، `render.yaml` (البوتات).
-- سكربتات: `set-webhooks.js`, `seed.js`, `deploy-rules.sh`.
-- README شامل بخطوات التشغيل والنشر خطوة بخطوة.
-
----
-
-## كيفية التشغيل (محليًا)
+## كيفية التشغيل
 ```bash
-cp .env.example .env        # ثم املأ القيم
-npm install                 # الجذر (أدوات)
-npm --prefix server install
-npm --prefix bots install
-
-npm run dev                 # الواجهة على http://localhost:5173/rawi.html
-npm --prefix server start   # API على :8080
-npm --prefix bots start     # 6 بوتات (long-polling)
+npm install
+npm run dev                 # الواجهة: http://localhost:5173/rawi.html
+cp .env.example .env        # (اختياري) لتفعيل Firebase/Gemini
+npm run seed                # بيانات أولية
+npm run ai:generate 5       # توليد 5 منشورات
 ```
 
 ## النشر
-1. **القواعد:** `firebase deploy --only firestore:rules,firestore:indexes`
-2. **الواجهة:** اربط المستودع بـ Vercel (مجلد `public`) أو `firebase deploy --only hosting`.
-3. **API:** Vercel (`server/vercel.json`) أو Render.
-4. **البوتات:** Render Background Worker (`bots/render.yaml`)، ثم `node scripts/set-webhooks.js`.
-5. أضف كل الأسرار في لوحة البيئة (Environment) لكل خدمة — لا تضعها في الكود.
+1. الواجهة → Vercel (Output Directory: `public`).
+2. القواعد → `npm run deploy:rules`.
+3. التوليد → GitHub Actions Secrets (`FIREBASE_SERVICE_ACCOUNT_JSON`, `GEMINI_API_KEY`).
 
-## قرارات هندسية معدّلة عن المواصفات (مع السبب)
-- **تخزين الصور:** أُلغي رفع الصور إلى Storage؛ التوليد على الـ Canvas في العميل (توفير مساحة + فورية).
-- **البحث:** بدل Full-Text Search مدفوع، استخدمنا `searchTokens` + `array-contains` (مجاني ضمن Spark).
-- **عدد البوتات:** اختير 6 من 7 المتاحة؛ السابع احتياطي. الأسماء أُعيدت لأدوار وظيفية واضحة.
+التفاصيل الكاملة في `DEPLOY.md`.
+
+## قرارات معدّلة عن النسخة السابقة (مع السبب)
+- **حُذف الخادم والبوتات الستة:** تعقيد غير ضروري. استُبدل بمولّد واحد + Actions (أبسط، أرخص، أوضح).
+- **الواجهة تتصل بـ Firestore مباشرة:** لا حاجة لطبقة API وسيطة لقراءة المحتوى.

@@ -1,20 +1,21 @@
 {
   "name": "rawi",
-  "version": "1.0.0",
-  "description": "روي — منصة عربية اجتماعية وموسوعية للشعر والأدب (PWA + Firebase + 6 Telegram bots + Gemini).",
+  "version": "2.0.0",
+  "description": "روي — منصة عربية للشعر والأدب (PWA + Firebase + توليد بالذكاء الاصطناعي).",
   "private": true,
   "type": "commonjs",
   "engines": { "node": ">=18" },
   "scripts": {
     "dev": "node scripts/serve.js",
-    "seed": "node scripts/seed.js",
-    "bots": "npm --prefix bots start",
-    "server": "npm --prefix server start",
-    "webhooks:set": "node scripts/set-webhooks.js set",
-    "webhooks:delete": "node scripts/set-webhooks.js delete",
-    "deploy:rules": "bash scripts/deploy-rules.sh",
-    "install:all": "npm --prefix server install && npm --prefix bots install"
+    "ai:generate": "node scripts/ai-generate.js",
+    "ai:enc": "node scripts/ai-generate.js enc",
+    "seed": "node scripts/ai-generate.js seed",
+    "deploy:rules": "bash scripts/deploy-rules.sh"
   },
-  "keywords": ["arabic", "poetry", "pwa", "firebase", "telegram-bot", "gemini"],
-  "license": "MIT"
+  "keywords": ["arabic", "poetry", "pwa", "firebase", "gemini", "ai"],
+  "license": "MIT",
+  "dependencies": {
+    "dotenv": "^16.4.5",
+    "firebase-admin": "^12.6.0"
+  }
 }

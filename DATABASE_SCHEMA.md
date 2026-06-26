@@ -108,46 +108,24 @@
 { "type":"like|comment|follow|badge|system", "actor":{}, "postId":"", "read":false, "createdAt":"ts" }
 ```
 
-## `pending_tasks/{taskId}`   (طابور البوتات — Task Queue)
-```jsonc
-{
-  "type":"generate_post|review|enrich|digest|trend",
-  "assignee":"rawi|naqid|warraq|haris|khazin|khabir",
-  "status":"queued|processing|done|failed",
-  "payload":{ "...":"..." },
-  "attempts":0,
-  "lockedBy":"string|null", "lockedAt":"ts|null", // قفل تشاؤمي بسيط
-  "createdAt":"ts", "updatedAt":"ts"
-}
-```
-
 ## `config/{docId}`   (إعدادات عامة — وثيقة واحدة لكل مفتاح)
 ```jsonc
 // config/system
 { "readOnly": false, "minVersion":"1.0.0", "maintenance": false }
 // config/flags
-{ "monetizationEnabled": false, "ambientAudio": true, "premiumBadges": false }
-// config/current_trend  (يحدّثها الخبير)
+{ "monetizationEnabled": false, "ambientAudio": true }
+// config/current_trend  (يحدّثه المولّد أو يدويًا)
 { "topic":"الغزل", "tags":["..."], "updatedAt":"ts" }
 ```
 
-## `reports/{reportId}`   (بلاغات → الحارس)
-```jsonc
-{ "targetType":"post|comment|user", "targetId":"", "reporterId":"uid",
-  "reason":"", "status":"open|resolved", "createdAt":"ts" }
-```
-
-## `rate_limits/{uid}_{yyyymmdd}`   (الحدود اليومية)
-```jsonc
-{ "posts":0, "likes":0, "comments":0 }
-```
+> المحتوى (`posts` / `encyclopedia`) يكتبه المولّد `scripts/ai-generate.js` عبر Admin SDK
+> بحقل `source: "ai:gemini"`. لا توجد مجموعات طوابير أو بوتات.
 
 ---
 
 ## الفهارس المركّبة (انظر `firestore.indexes.json`)
 - `posts`: `status ==` + `createdAt desc`  (التغذية)
-- `posts`: `type ==` + `createdAt desc`
-- `posts`: `searchTokens array-contains` + `createdAt desc`
 - `posts`: `authorId ==` + `createdAt desc`  (الملف الشخصي)
+- `posts`: `searchTokens array-contains` + `createdAt desc`
 - `encyclopedia`: `kind ==` + `title asc`
-- `pending_tasks`: `assignee ==` + `status ==` + `createdAt asc`
+- `encyclopedia`: `searchTokens array-contains` + `title asc`

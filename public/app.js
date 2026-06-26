@@ -206,7 +206,26 @@ function wrapRTL(ctx, text, maxW) {
 const DB = (() => {
   let fb = null;            // { auth, db, fns... }
   let mode = 'local';
+  const fbFeed = { lastDoc: null };
   const live = LS.get('posts', null);
+
+  // يوحّد شكل المنشور القادم من Firestore (تواريخ + أفاتار + عدّادات)
+  function normalizePost(id, d) {
+    const createdAt = d.createdAt?.toDate?.() ? d.createdAt.toDate().toISOString() : (d.createdAt || nowISO());
+    const author = d.author || { username: 'rawi_ai', displayName: 'روي · الراوي', badges: ['verified'] };
+    if (!author.avatar) author.avatar = avatarDataURI(author.username || 'rawi');
+    return {
+      id, type: d.type || 'poem', title: d.title || '', body: d.body || '', meter: d.meter || '',
+      theme: typeof d.theme === 'object' ? (d.theme.id || 'ink') : (d.theme || 'ink'),
+      author, tags: d.tags || [],
+      counts: { likes: 0, comments: 0, bookmarks: 0, views: 0, shares: 0, ...(d.counts || {}) },
+      createdAt, status: d.status || 'published', isDeleted: !!d.isDeleted, source: d.source || 'ai',
+    };
+  }
+  function normalizeEnc(id, d) {
+    return { id, kind: d.kind || 'term', title: d.title || '', summary: d.summary || '',
+      body: d.body || '', era: d.era || '', searchTokens: d.searchTokens || [] };
+  }
 
   function seedAll() {
     const base = SEED_POSTS.map((p, i) => ({
@@ -242,6 +261,8 @@ const DB = (() => {
       const db = fsMod.getFirestore(app);
       fb = { app, auth, db, authMod, fsMod };
       mode = 'firebase';
+      // مصادقة مجهولة (best-effort) لتمكين الكتابة وفق القواعد
+      authMod.signInAnonymously(auth).catch(() => {});
       return true;
     } catch (e) { console.warn('[RAWI] Firebase غير متاح — الوضع المحلي.', e?.message); return false; }
   }
@@ -252,11 +273,29 @@ const DB = (() => {
     fb: () => fb,
     init: tryFirebase,
 
-    getFeed(cursor = 0, n = 5) {
+    async getFeed(cursor = 0, n = 5) {
+      // قراءة حيّة من Firestore عند توفّره، مع رجوع للبيانات المحلية
+      if (mode === 'firebase') {
+        try {
+          const { db, fsMod } = fb;
+          if (cursor === 0) fbFeed.lastDoc = null;
+          const parts = [fsMod.where('status', '==', 'published'), fsMod.orderBy('createdAt', 'desc')];
+          if (fbFeed.lastDoc) parts.push(fsMod.startAfter(fbFeed.lastDoc));
+          parts.push(fsMod.limit(n));
+          const snap = await fsMod.getDocs(fsMod.query(fsMod.collection(db, 'posts'), ...parts));
+          if (!snap.empty) {
+            fbFeed.lastDoc = snap.docs[snap.docs.length - 1];
+            const items = snap.docs.map(d => normalizePost(d.id, d.data()));
+            return { items, next: snap.size === n ? cursor + n : null };
+          }
+          if (cursor > 0) return { items: [], next: null };
+          // فارغ في الصفحة الأولى → اعرض البذور المحلية مؤقتًا
+        } catch (e) { console.warn('[RAWI] feed → محلي:', e?.message); }
+      }
       const sorted = posts.filter(p => p.status === 'published' && !p.isDeleted)
         .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
       const slice = sorted.slice(cursor, cursor + n);
-      return Promise.resolve({ items: slice, next: cursor + n < sorted.length ? cursor + n : null });
+      return { items: slice, next: cursor + n < sorted.length ? cursor + n : null };
     },
     getProfilePosts(username) {
       return Promise.resolve(posts.filter(p => p.author?.username === username && !p.isDeleted)
@@ -289,6 +328,18 @@ const DB = (() => {
       const liked = LS.get('likes', {}); const on = !liked[id];
       liked[id] = on; LS.set('likes', liked);
       const p = posts.find(x => x.id === id); if (p) { p.counts.likes += on ? 1 : -1; LS.set('posts', posts); }
+      // عدّاد حيّ على Firestore (best-effort)
+      if (mode === 'firebase') {
+        try {
+          const { db, fsMod, auth } = fb;
+          fsMod.updateDoc(fsMod.doc(db, 'posts', id), { counts: { likes: fsMod.increment(on ? 1 : -1) } }).catch(() => {});
+          const u = auth.currentUser;
+          if (u) {
+            const ref = fsMod.doc(db, 'posts', id, 'likes', u.uid);
+            (on ? fsMod.setDoc(ref, { createdAt: fsMod.serverTimestamp() }) : fsMod.deleteDoc(ref)).catch(() => {});
+          }
+        } catch (e) { /* ignore */ }
+      }
       return Promise.resolve(on);
     },
     isLiked(id){ return !!LS.get('likes', {})[id]; },
@@ -309,15 +360,51 @@ const DB = (() => {
       return Promise.resolve(c);
     },
 
-    search(q) {
+    async search(q) {
       const t = q.trim().toLowerCase();
-      if (!t) return Promise.resolve(SEED_ENC);
+      if (!t) return this.encByKind('all');
       const toks = t.split(/\s+/);
-      return Promise.resolve(SEED_ENC.filter(e =>
-        toks.some(tk => (e.title + ' ' + e.summary + ' ' + e.era + ' ' + e.body).toLowerCase().includes(tk))));
+      const local = SEED_ENC.filter(e => toks.some(tk =>
+        (e.title + ' ' + e.summary + ' ' + e.era + ' ' + e.body).toLowerCase().includes(tk)));
+      if (mode === 'firebase') {
+        try {
+          const { db, fsMod } = fb;
+          const tok = toks[0].replace(/^[الـ]+/, '');
+          const snap = await fsMod.getDocs(fsMod.query(fsMod.collection(db, 'encyclopedia'),
+            fsMod.where('searchTokens', 'array-contains', tok), fsMod.limit(15)));
+          const live = snap.docs.map(d => normalizeEnc(d.id, d.data()));
+          const merged = [...live, ...local.filter(l => !live.some(v => v.title === l.title))];
+          if (merged.length) return merged;
+        } catch (e) { /* fallback */ }
+      }
+      return local;
     },
-    encByKind(kind){ return Promise.resolve(kind === 'all' ? SEED_ENC : SEED_ENC.filter(e => e.kind === kind)); },
-    trend(){ return Promise.resolve(LS.get('trend', { topic:'الحكمة في شعر المتنبي', tags:['#حكمة','#فخر','#المتنبي'] })); },
+    async encByKind(kind) {
+      if (mode === 'firebase') {
+        try {
+          const { db, fsMod } = fb;
+          const parts = kind === 'all' ? [fsMod.limit(30)]
+            : [fsMod.where('kind', '==', kind), fsMod.limit(30)];
+          const snap = await fsMod.getDocs(fsMod.query(fsMod.collection(db, 'encyclopedia'), ...parts));
+          if (!snap.empty) {
+            const live = snap.docs.map(d => normalizeEnc(d.id, d.data()));
+            const seed = kind === 'all' ? SEED_ENC : SEED_ENC.filter(e => e.kind === kind);
+            return [...live, ...seed.filter(s => !live.some(v => v.title === s.title))];
+          }
+        } catch (e) { /* fallback */ }
+      }
+      return kind === 'all' ? SEED_ENC : SEED_ENC.filter(e => e.kind === kind);
+    },
+    async trend() {
+      if (mode === 'firebase') {
+        try {
+          const { db, fsMod } = fb;
+          const s = await fsMod.getDoc(fsMod.doc(db, 'config', 'current_trend'));
+          if (s.exists()) { const d = s.data(); if (d.topic) return { topic: d.topic, tags: d.tags || [] }; }
+        } catch (e) { /* fallback */ }
+      }
+      return LS.get('trend', { topic: 'الحكمة في شعر المتنبي', tags: ['#حكمة', '#فخر', '#المتنبي'] });
+    },
 
     notifications() {
       return Promise.resolve(LS.get('notifs', [

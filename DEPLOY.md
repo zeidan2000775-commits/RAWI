@@ -1,77 +1,60 @@
-# 🚀 دليل نشر روي (RAWI) — خطوة بخطوة
+# 🚀 دليل نشر روي (RAWI) — مبسّط
 
-المشروع 3 أجزاء تُنشر بشكل مستقل. **الواجهة وحدها كافية لموقع يعمل فورًا** —
-والبقية تُفعّل الحفظ الحيّ والبوتات.
+البنية: **واجهة (Vercel) + قاعدة بيانات (Firebase) + مولّد ذكاء اصطناعي (GitHub Actions)**.
+لا خادم دائم ولا بوتات.
 
-> 🔑 **كل المفاتيح تُضاف كـ Environment Variables في لوحة المنصة (Vercel/Render)، لا داخل الكود.**
-> تقدر تضيفها لاحقًا — الموقع يعمل قبلها ببيانات جاهزة.
-
----
-
-## ① الواجهة (Frontend) → Vercel  ✅ الأهم
-**لا تحتاج أي مفتاح سرّي** — إعداد Firebase للويب عام ومضمّن في `public/config.js`.
-
-1. ارفع المستودع إلى GitHub (تم).
-2. في Vercel: **New Project** → اختر المستودع.
-3. الإعدادات:
-   - **Framework Preset:** Other
-   - **Root Directory:** `.` (الجذر)
-   - **Output Directory:** `public`
-   - **Build Command:** اتركه فارغًا (موقع ثابت)
-4. **Deploy** — سيعمل الموقع فورًا على `https://<اسمك>.vercel.app` ويفتح على `rawi.html`.
-
-> ملاحظة: الواجهة تقرأ المحتوى محليًا (بيانات شعرية مختارة) لتعمل دائمًا بسرعة وبلا تكلفة.
-> لتفعيل الحفظ الحيّ من المستخدمين، انشر قواعد Firebase (القسم ③) ثم سيكتب التطبيق إلى Firestore.
+> 🔑 كل المفاتيح تُضاف كـ Environment Variables / Secrets — لا داخل الكود.
+> الموقع يعمل قبل إضافة أي مفتاح (ببيانات جاهزة).
 
 ---
 
-## ② قواعد البيانات (Firebase) → مرة واحدة
-1. ثبّت الأدوات: `npm i -g firebase-tools` ثم `firebase login`.
+## ① الواجهة → Vercel  ✅ (بدون أي مفتاح)
+1. ارفع المستودع إلى GitHub.
+2. Vercel → **New Project** → اختر المستودع.
+3. الإعدادات: **Framework: Other** · **Root Directory: `.`** · **Output Directory: `public`** · Build فارغ.
+4. **Deploy** → الموقع حيّ فورًا على `https://<اسمك>.vercel.app`.
+
+إعداد Firebase للويب عام ومضمّن في `public/config.js`، فالواجهة تقرأ من Firestore مباشرة.
+
+---
+
+## ② قاعدة البيانات → Firebase (مرة واحدة)
+1. في Firebase Console: فعّل **Firestore Database** و**Authentication → Anonymous** (و**Google** اختياريًا).
 2. انشر القواعد والفهارس:
    ```bash
-   npm run deploy:rules        # firestore.rules + firestore.indexes.json
+   npm i -g firebase-tools && firebase login
+   npm run deploy:rules
    ```
-3. (اختياري) ابذر بيانات أولية:
+3. (اختياري) بيانات أولية:
    ```bash
-   cp .env.example .env        # املأ FIREBASE_SERVICE_ACCOUNT_JSON
+   cp .env.example .env       # املأ FIREBASE_SERVICE_ACCOUNT_JSON
    npm run seed
    ```
-4. في Firebase Console: فعّل **Authentication → Google** و**Firestore Database**.
 
 ---
 
-## ③ الـ API (server) → Vercel (مشروع منفصل) — اختياري
-يلزم فقط لإشعارات FCM وWebhooks. 
-- **Root Directory:** `server` — Vercel يلتقط `server/vercel.json` تلقائيًا.
-- أضف المتغيّرات (القسم «مصفوفة المفاتيح» أدناه).
+## ③ التوليد بالذكاء الاصطناعي → GitHub Actions (مجاني، تلقائي)
+1. في المستودع: **Settings → Secrets and variables → Actions → New repository secret**، أضِف:
+   - `FIREBASE_SERVICE_ACCOUNT_JSON` — محتوى ملف الـ service account (سطر JSON واحد).
+   - `GEMINI_API_KEY` — مفتاح Gemini.
+2. الوركفلو `.github/workflows/ai-generate.yml` يعمل **كل 6 ساعات** تلقائيًا،
+   أو شغّله يدويًا من تبويب **Actions → AI Generate → Run workflow**.
+
+> بدّل التوقيت من `cron` في الوركفلو. بدون `GEMINI_API_KEY` يستخدم المولّد معجمًا تراثيًا (لا يفشل).
 
 ---
 
-## ④ البوتات (bots) → Render — اختياري
-1. Render → **New → Background Worker** → اربط المستودع.
-2. **Root Directory:** `bots` · **Build:** `npm install` · **Start:** `node src/index.js`
-   (أو استخدم `bots/render.yaml` عبر Blueprint).
-3. أضف المتغيّرات (أدناه)، ثم انشر. أرسل `/panel` لأي بوت في تيليجرام للوحة التحكم.
+## 🔐 أين تُضاف كل قيمة
+| المتغيّر | Vercel (الواجهة) | GitHub Actions / محليًا |
+|---------|:---:|:---:|
+| Firebase Web (config.js) | مضمّن | — |
+| `FIREBASE_SERVICE_ACCOUNT_JSON` | — | ✅ |
+| `GEMINI_API_KEY` / `GEMINI_MODEL` | — | ✅ |
+
+⚠️ **private_key:** الصق النص الكامل داخل `FIREBASE_SERVICE_ACCOUNT_JSON`.
 
 ---
 
-## 🔐 مصفوفة المفاتيح — أين تُضاف كل قيمة
-
-| المتغيّر | Vercel (الواجهة) | Vercel (server) | Render (bots) |
-|---------|:---:|:---:|:---:|
-| `FIREBASE_*` (web) | مضمّنة في config.js | — | — |
-| `FIREBASE_SERVICE_ACCOUNT_JSON` | — | ✅ | ✅ |
-| `GEMINI_API_KEY` / `GEMINI_MODEL` | — | — | ✅ |
-| `TELEGRAM_ADMIN_CHAT_ID` | — | (للـ webhook) | ✅ |
-| `BOT_RAWI_TOKEN` … `BOT_KHABIR_TOKEN` (×6) | — | (للـ webhook) | ✅ |
-| `WEBHOOK_SECRET` | — | ✅ | ✅ |
-| `KILL_SWITCH` / `MONETIZATION_ENABLED` | — | ✅ | ✅ |
-
-> القيم نفسها موجودة في `.env.example`. للتشغيل المحلي: `cp .env.example .env` واملأها.
-> ⚠️ **مفتاح Admin الخاص (private_key):** الصق النص الكامل داخل `FIREBASE_SERVICE_ACCOUNT_JSON`.
-
----
-
-## ✅ أسرع طريق لموقع حيّ الآن
-1. ارفع إلى GitHub → Vercel (Output Directory = `public`) → **Deploy**.
-2. خلاص! الموقع شغّال. أضف مفاتيح Firebase/Gemini/Telegram لاحقًا متى ما حبيت لتفعيل الحفظ والبوتات.
+## ✅ أسرع طريق
+GitHub → Vercel (Output = `public`) → **Deploy**. خلاص الموقع شغّال.
+أضف مفاتيح Firebase/Gemini لاحقًا لتفعيل الربط الحيّ والتوليد التلقائي.
