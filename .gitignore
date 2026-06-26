@@ -36,6 +36,9 @@ Thumbs.db
 !.vscode/extensions.json
 *.swp
 
+# ===== Build artifacts =====
+*.zip
+
 # ===== Runtime =====
 pids/
 *.pid

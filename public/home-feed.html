@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="theme-color" content="#0E1F25" />
+<title>روي · Home Feed — Design System</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Cairo:wght@500;700&display=swap" rel="stylesheet" />
+<style>
+/* ====================== روي · Design System (Home Feed) ====================== */
+:root{
+  /* لوحة الألوان */
+  --ink-soft:#2B3038; --ink-2:#3A4150; --muted:#7A7466;
+  --gold:#C9A227; --gold-2:#E8C766; --gold-soft:#F4EBD0;
+  --teal:#2C6E63; --teal-2:#3C9484; --rose:#D7415F;
+  --burgundy:#5A1626; --burgundy-2:#7B2D3A; --antique-gold:#B08D3E;
+  /* خلفية عاجية + أسطح */
+  --bg:#FBF7EF; --bg-2:#F3ECDD; --surface:#FFFFFF; --line:#ECE3D2;
+  --glass:rgba(255,251,243,.66); --scrim:rgba(40,28,20,.42);
+  /* تدرّج ملكي مخفي: العنابي + الذهبي المعتق */
+  --royal-grad:linear-gradient(142deg,#4E1322 0%,#7B2D3A 42%,#9C7A2E 100%);
+  --emerald-grad:linear-gradient(150deg,#2C6E63,#15403A);
+  --ink-grad:linear-gradient(150deg,#1F2A44,#0B1020);
+  /* ظلال ناعمة متعددة الطبقات (Soft Depth) */
+  --elev-1:0 1px 1px rgba(58,38,20,.03),0 2px 5px rgba(58,38,20,.04),0 8px 18px rgba(58,38,20,.05);
+  --elev-float:0 4px 10px rgba(58,38,20,.04),0 14px 30px rgba(58,38,20,.07),0 30px 70px rgba(58,38,20,.08);
+  /* الحركة: حرير + ارتداد نابض */
+  --ease:cubic-bezier(.22,.61,.36,1);
+  --spring:cubic-bezier(0.175,0.885,0.32,1.27);
+  --fast:.2s; --med:.34s; --slow:.46s;
+  --blur:blur(12px) saturate(1.6);
+  --r:18px; --r-lg:24px; --r-xl:32px;
+  --font-ui:'Cairo',system-ui,sans-serif; --font-serif:'Amiri','Times New Roman',serif;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%}
+body{
+  font-family:var(--font-ui);color:var(--ink-soft);
+  background:radial-gradient(120% 60% at 50% -10%,var(--bg-2),transparent 60%),var(--bg);
+  display:grid;place-items:center;overflow:hidden;-webkit-font-smoothing:antialiased;
+}
+button{font:inherit;color:inherit;border:0;background:none;cursor:pointer}
+svg{display:block}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden}
+
+/* ----- إطار التطبيق (Phone Shell) ----- */
+.app{position:relative;width:100%;max-width:480px;height:100dvh;background:var(--bg);
+  overflow:hidden;box-shadow:0 0 0 1px var(--line),var(--elev-float)}
+@media(min-width:520px){.app{height:min(920px,96dvh);border-radius:38px}}
+
+/* ----- الشريط العلوي (Glassmorphism) ----- */
+.topbar{position:absolute;top:0;inset-inline:0;z-index:5;height:62px;display:flex;align-items:center;gap:10px;
+  padding:0 18px;background:var(--glass);backdrop-filter:var(--blur);-webkit-backdrop-filter:var(--blur);
+  border-bottom:1px solid color-mix(in srgb,var(--line) 70%,transparent)}
+.brand{display:flex;align-items:center;gap:10px}
+.brand .mark{width:36px;height:36px;border-radius:12px;display:grid;place-items:center;
+  background:var(--ink-grad);box-shadow:var(--elev-1)}
+.brand .mark svg{width:22px;height:22px;color:var(--gold-2)}
+.brand h1{margin:0;font-size:1.2rem;font-weight:700;letter-spacing:-.3px}
+.brand small{display:block;margin-top:-3px;font-size:.68rem;font-weight:500;color:var(--muted)}
+.grow{flex:1}
+.iconbtn{width:42px;height:42px;border-radius:50%;display:grid;place-items:center;color:var(--ink-2);position:relative;
+  transition:background var(--fast) var(--ease),transform var(--med) var(--spring)}
+.iconbtn:hover{background:color-mix(in srgb,var(--ink-soft) 7%,transparent)}
+.iconbtn:active{transform:scale(.86)}
+.iconbtn svg{width:23px;height:23px}
+.iconbtn .dot{position:absolute;top:9px;inset-inline-end:9px;width:8px;height:8px;border-radius:50%;
+  background:var(--rose);box-shadow:0 0 0 2px var(--glass)}
+
+/* ----- منطقة التمرير ----- */
+.scroll{position:absolute;inset:62px 0 calc(66px + env(safe-area-inset-bottom)) 0;overflow-y:auto;overscroll-behavior:contain}
+.scroll::-webkit-scrollbar{width:0}
+
+/* ----- شريط القصص اليومية ----- */
+.stories{display:flex;gap:14px;padding:16px 18px;overflow-x:auto;border-bottom:1px solid var(--line)}
+.stories::-webkit-scrollbar{height:0}
+.story{flex:none;width:66px;display:flex;flex-direction:column;align-items:center;gap:6px}
+.story .ring{width:64px;height:64px;border-radius:50%;padding:3px;
+  background:conic-gradient(from 210deg,var(--gold-2),var(--teal-2),var(--burgundy-2),var(--gold),var(--gold-2));
+  transition:transform var(--med) var(--spring)}
+.story:active .ring{transform:scale(.9)}
+.story.seen .ring{background:var(--line)}
+.story .av{width:100%;height:100%;border-radius:50%;border:2.5px solid var(--surface);overflow:hidden}
+.story .av span{display:grid;place-items:center;width:100%;height:100%;font-family:var(--font-serif);
+  font-size:1.4rem;font-weight:700;color:#fff}
+.story .nm{font-size:.66rem;color:var(--muted);max-width:66px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.story.add .ring{background:var(--line);display:grid;place-items:center}
+.story.add .av{display:grid;place-items:center;color:var(--gold);background:var(--surface)}
+
+/* ====================== الكبسولة (بطاقة المنشور) ====================== */
+.feed{padding:18px 16px 28px}
+.capsule{position:relative;border-radius:var(--r-xl);overflow:hidden;margin-bottom:20px;min-height:352px;
+  display:flex;flex-direction:column;background:var(--surface);
+  border:1px solid color-mix(in srgb,var(--line) 60%,transparent);
+  box-shadow:var(--elev-float);will-change:transform;
+  transition:transform var(--med) var(--spring),box-shadow var(--med) var(--ease);
+  animation:rise var(--slow) var(--spring) both}
+.capsule:active{transform:scale(.99)}
+@keyframes rise{from{opacity:0;transform:translateY(18px) scale(.985)}}
+.cap-art{position:absolute;inset:0;z-index:0}
+.cap-art .grad{position:absolute;inset:0}
+.cap-art .pat{position:absolute;inset:0;opacity:.14;
+  background-image:radial-gradient(circle at 1px 1px,#fff 1px,transparent 0);background-size:22px 22px}
+.cap-art .glow{position:absolute;inset:0;
+  background:radial-gradient(120% 70% at 50% 0%,rgba(255,255,255,.12),transparent 55%)}
+.t-royal .grad{background:var(--royal-grad)}
+.t-emerald .grad{background:var(--emerald-grad)}
+.t-ink .grad{background:var(--ink-grad)}
+.cap-body{position:relative;z-index:2;flex:1;display:flex;flex-direction:column;padding:22px 22px 18px;padding-inline-start:66px}
+.cap-type{align-self:flex-start;font-size:.7rem;font-weight:700;padding:6px 13px;border-radius:999px;color:#fff;
+  background:rgba(255,255,255,.16);backdrop-filter:blur(6px);letter-spacing:.4px}
+.cap-text{flex:1;display:flex;align-items:center}
+.cap-title{font-family:var(--font-serif);color:#fff;font-size:1.1rem;font-weight:700;line-height:1.8;
+  margin:0 0 6px;opacity:.96;letter-spacing:.3px}
+.cap-verse{font-family:var(--font-serif);font-size:1.55rem;line-height:1.8;color:#fff;margin:0;font-weight:700;
+  white-space:pre-line;letter-spacing:.2px;text-shadow:0 2px 20px rgba(0,0,0,.32)}
+.cap-foot{display:flex;align-items:center;gap:10px;margin-top:16px}
+.cap-foot .av{width:40px;height:40px;border-radius:50%;border:2px solid rgba(255,255,255,.55);overflow:hidden;flex:none;
+  display:grid;place-items:center;font-family:var(--font-serif);font-weight:700;color:#fff;background:rgba(0,0,0,.18)}
+.cap-foot .who{color:#fff;font-weight:700;font-size:.88rem;display:flex;align-items:center;gap:5px}
+.cap-foot .who svg{width:15px;height:15px;color:var(--gold-2)}
+.cap-foot .meta{color:rgba(255,255,255,.78);font-size:.72rem}
+.cap-meter{margin-inline-start:auto;font-size:.7rem;color:#fff;background:rgba(0,0,0,.22);padding:5px 11px;border-radius:999px}
+
+/* ----- شريط التفاعل الطافي (Floating Vertical Sidebar) ----- */
+.rail{position:absolute;z-index:3;inset-inline-start:12px;bottom:20px;display:flex;flex-direction:column;gap:16px;align-items:center}
+.rail .act{display:flex;flex-direction:column;align-items:center;gap:3px;color:#fff}
+.rail .act svg{width:28px;height:28px;filter:drop-shadow(0 2px 8px rgba(0,0,0,.38));transition:transform var(--med) var(--spring)}
+.rail .act b{font-size:.66rem;font-weight:700;text-shadow:0 1px 4px rgba(0,0,0,.4);font-variant-numeric:tabular-nums}
+.rail .act:active svg{transform:scale(.78)}
+.rail .act.on svg{color:var(--rose);transform:scale(1.08)}
+.rail .act.on.bm svg{color:var(--gold-2)}
+@keyframes pop{0%{transform:scale(1)}45%{transform:scale(1.45)}100%{transform:scale(1.08)}}
+.rail .act.pulse svg{animation:pop .5s var(--spring)}
+
+/* ----- الشريط السفلي (Glass + FAB) ----- */
+.botnav{position:absolute;inset-inline:0;bottom:0;z-index:6;height:calc(66px + env(safe-area-inset-bottom));
+  padding-bottom:env(safe-area-inset-bottom);display:flex;align-items:center;justify-content:space-around;
+  background:var(--glass);backdrop-filter:var(--blur);-webkit-backdrop-filter:var(--blur);
+  border-top:1px solid color-mix(in srgb,var(--line) 70%,transparent);box-shadow:0 -8px 30px rgba(58,38,20,.05)}
+.nav{flex:1;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;
+  color:var(--muted);font-size:.62rem;font-weight:600}
+.nav svg{width:25px;height:25px;transition:transform var(--med) var(--spring)}
+.nav.active{color:var(--gold)}
+.nav.active svg{transform:translateY(-2px) scale(1.1)}
+.nav:active svg{transform:scale(.82)}
+.fab{flex:none;width:56px;height:56px;margin-top:-22px;border-radius:20px;color:#1A1306;
+  background:linear-gradient(135deg,var(--gold-2),var(--gold));display:grid;place-items:center;
+  box-shadow:0 8px 22px color-mix(in srgb,var(--gold) 55%,transparent);
+  transition:transform var(--slow) var(--spring)}
+.fab svg{width:30px;height:30px}
+.fab:active{transform:scale(.88) rotate(90deg)}
+@media(prefers-reduced-motion:reduce){*{animation-duration:.01s!important;transition-duration:.06s!important}}
+</style>
+</head>
+<body>
+<!-- مكتبة الأيقونات (مضمّنة) -->
+<svg class="sr" aria-hidden="true">
+  <symbol id="o-feather" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 4C11 4 5 9 5 17l-1 3 3-1c8 0 13-6 13-15Z"/><path d="M16 8 7 17M11 11h4M9 14h3"/></symbol>
+  <symbol id="o-bell" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9a6 6 0 0 1 12 0c0 5 2 6 2 6H4s2-1 2-6Z"/><path d="M10 19a2 2 0 0 0 4 0"/></symbol>
+  <symbol id="o-plus" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 4v16M4 12h16"/></symbol>
+  <symbol id="o-home" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V20a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V9.5"/><path d="M9.5 21v-6h5v6"/></symbol>
+  <symbol id="o-book" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v15H6.5A2.5 2.5 0 0 0 4 20.5z"/><path d="M8 7h7M8 10h5"/></symbol>
+  <symbol id="o-user" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-6.5 8-6.5S20 17 20 21"/></symbol>
+  <symbol id="o-heart" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20s-7-4.5-9.3-9C1.3 8.2 2.6 5 5.8 5 8 5 9.4 6.4 12 9c2.6-2.6 4-4 6.2-4 3.2 0 4.5 3.2 3.1 6-2.3 4.5-9.3 9-9.3 9Z"/></symbol>
+  <symbol id="o-heart-fill" viewBox="0 0 24 24" fill="currentColor"><path d="M12 20.5s-7.3-4.7-9.6-9.3C.9 8 2.4 4.5 5.9 4.5 8.3 4.5 9.7 6 12 8.5c2.3-2.5 3.7-4 6.1-4 3.5 0 5 3.5 3.5 6.7-2.3 4.6-9.6 9.3-9.6 9.3Z"/></symbol>
+  <symbol id="o-comment" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h16v11H9l-4 3.5V16H4z"/><path d="M8 9h8M8 12h5"/></symbol>
+  <symbol id="o-bookmark" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3.5h12v17l-6-4-6 4z"/></symbol>
+  <symbol id="o-share" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="12" r="2.5"/><circle cx="18" cy="6" r="2.5"/><circle cx="18" cy="18" r="2.5"/><path d="m8.2 10.8 7.6-3.6M8.2 13.2l7.6 3.6"/></symbol>
+  <symbol id="o-verified" viewBox="0 0 24 24" fill="currentColor"><path d="m12 2 2.2 1.6 2.7-.3 1.1 2.5 2.5 1.1-.3 2.7L24 12l-1.6 2.2.3 2.7-2.5 1.1-1.1 2.5-2.7-.3L12 22l-2.2-1.6-2.7.3-1.1-2.5-2.5-1.1.3-2.7L0 12l1.6-2.2-.3-2.7 2.5-1.1L4.9 3.3l2.7.3z" opacity=".22"/><path d="M8 12.2l2.6 2.6L16 9.4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+</svg>
+
+<main class="app">
+  <!-- الشريط العلوي -->
+  <header class="topbar">
+    <div class="brand">
+      <span class="mark"><svg><use href="#o-feather"/></svg></span>
+      <div><h1>روي<small>تغذيتك الأدبية</small></h1></div>
+    </div>
+    <div class="grow"></div>
+    <button class="iconbtn" aria-label="الإشعارات"><svg><use href="#o-bell"/></svg><span class="dot"></span></button>
+  </header>
+
+  <div class="scroll">
+    <!-- القصص اليومية -->
+    <div class="stories">
+      <div class="story add"><div class="ring"><div class="av"><svg style="width:26px"><use href="#o-plus"/></svg></div></div><span class="nm">قصتك</span></div>
+      <div class="story"><div class="ring"><div class="av"><span style="background:var(--royal-grad)">ر</span></div></div><span class="nm">روي اليوم</span></div>
+      <div class="story"><div class="ring"><div class="av"><span style="background:var(--ink-grad)">م</span></div></div><span class="nm">المتنبي</span></div>
+      <div class="story"><div class="ring"><div class="av"><span style="background:var(--emerald-grad)">ش</span></div></div><span class="nm">الشابي</span></div>
+      <div class="story seen"><div class="ring"><div class="av"><span style="background:linear-gradient(135deg,#7B2D3A,#B08D3E)">ف</span></div></div><span class="nm">أبو فراس</span></div>
+      <div class="story seen"><div class="ring"><div class="av"><span style="background:linear-gradient(135deg,#1E6E8C,#0B2F40)">ش</span></div></div><span class="nm">شوقي</span></div>
+    </div>
+
+    <!-- التغذية -->
+    <section class="feed">
+      <!-- بطاقة مميّزة: العنابي الملكي + الذهبي المعتق -->
+      <article class="capsule t-royal">
+        <div class="cap-art"><div class="grad"></div><div class="pat"></div><div class="glow"></div></div>
+        <div class="cap-body">
+          <span class="cap-type">قصيدة · مميّز</span>
+          <div class="cap-text"><div>
+            <p class="cap-title">على قدرِ أهلِ العزم</p>
+            <p class="cap-verse">على قدرِ أهلِ العزمِ تأتي العزائمُ
+وتأتي على قدرِ الكرامِ المكارمُ
+وتعظُمُ في عينِ الصغيرِ صغارُها
+وتصغُرُ في عينِ العظيمِ العظائمُ</p>
+          </div></div>
+          <div class="cap-foot">
+            <div class="av">م</div>
+            <div><div class="who">أبو الطيب المتنبي <svg><use href="#o-verified"/></svg></div>
+              <div class="meta">@al_mutanabbi · الآن</div></div>
+            <span class="cap-meter">الطويل</span>
+          </div>
+        </div>
+        <div class="rail">
+          <button class="act on" aria-label="إعجاب"><svg><use href="#o-heart-fill"/></svg><b>4.2K</b></button>
+          <button class="act" aria-label="تعليق"><svg><use href="#o-comment"/></svg><b>312</b></button>
+          <button class="act bm" aria-label="حفظ"><svg><use href="#o-bookmark"/></svg><b>1.1K</b></button>
+          <button class="act" aria-label="مشاركة"><svg><use href="#o-share"/></svg><b>208</b></button>
+        </div>
+      </article>
+
+      <!-- بطاقة زمردية -->
+      <article class="capsule t-emerald">
+        <div class="cap-art"><div class="grad"></div><div class="pat"></div><div class="glow"></div></div>
+        <div class="cap-body">
+          <span class="cap-type">اقتباس</span>
+          <div class="cap-text"><div>
+            <p class="cap-verse">وما الحُسنُ في وجهِ الفتاةِ تمامُهُ
+ولكنّهُ في الفعلِ والخُلُقِ الحَسَنْ</p>
+          </div></div>
+          <div class="cap-foot">
+            <div class="av">ر</div>
+            <div><div class="who">روي · المختارات <svg><use href="#o-verified"/></svg></div>
+              <div class="meta">@rawi_daily · قبل ١ س</div></div>
+          </div>
+        </div>
+        <div class="rail">
+          <button class="act" aria-label="إعجاب"><svg><use href="#o-heart"/></svg><b>980</b></button>
+          <button class="act" aria-label="تعليق"><svg><use href="#o-comment"/></svg><b>57</b></button>
+          <button class="act bm on" aria-label="حفظ"><svg><use href="#o-bookmark"/></svg><b>240</b></button>
+          <button class="act" aria-label="مشاركة"><svg><use href="#o-share"/></svg><b>33</b></button>
+        </div>
+      </article>
+
+      <!-- بطاقة حِبرية -->
+      <article class="capsule t-ink">
+        <div class="cap-art"><div class="grad"></div><div class="pat"></div><div class="glow"></div></div>
+        <div class="cap-body">
+          <span class="cap-type">قصيدة</span>
+          <div class="cap-text"><div>
+            <p class="cap-title">دعِ الأيام</p>
+            <p class="cap-verse">دعِ الأيامَ تفعلُ ما تشاءُ
+وطِبْ نفسًا إذا حكمَ القضاءُ</p>
+          </div></div>
+          <div class="cap-foot">
+            <div class="av">ش</div>
+            <div><div class="who">الإمام الشافعي <svg><use href="#o-verified"/></svg></div>
+              <div class="meta">@al_shafii · قبل ٣ س</div></div>
+            <span class="cap-meter">الوافر</span>
+          </div>
+        </div>
+        <div class="rail">
+          <button class="act" aria-label="إعجاب"><svg><use href="#o-heart"/></svg><b>2.7K</b></button>
+          <button class="act" aria-label="تعليق"><svg><use href="#o-comment"/></svg><b>189</b></button>
+          <button class="act bm" aria-label="حفظ"><svg><use href="#o-bookmark"/></svg><b>654</b></button>
+          <button class="act" aria-label="مشاركة"><svg><use href="#o-share"/></svg><b>120</b></button>
+        </div>
+      </article>
+    </section>
+  </div>
+
+  <!-- الشريط السفلي -->
+  <nav class="botnav">
+    <button class="nav active"><svg><use href="#o-home"/></svg>الرئيسية</button>
+    <button class="nav"><svg><use href="#o-book"/></svg>الموسوعة</button>
+    <button class="fab" aria-label="إنشاء"><svg><use href="#o-plus"/></svg></button>
+    <button class="nav"><svg><use href="#o-bell"/></svg>الإشعارات</button>
+    <button class="nav"><svg><use href="#o-user"/></svg>حسابي</button>
+  </nav>
+</main>
+
+<script>
+/* تفاعلات نابضة (Spring Micro-interactions) — إعجاب/حفظ تفاؤلي */
+document.querySelectorAll('.rail .act').forEach((b) => b.addEventListener('click', () => {
+  const lbl = b.getAttribute('aria-label'); const c = b.querySelector('b');
+  if (lbl === 'إعجاب' || lbl === 'حفظ') {
+    const on = b.classList.toggle('on');
+    const use = b.querySelector('use');
+    if (lbl === 'إعجاب') use.setAttribute('href', on ? '#o-heart-fill' : '#o-heart');
+    let n = parseFloat(c.textContent) + (on ? 1 : -1); // عرض مبسّط
+    b.classList.add('pulse'); setTimeout(() => b.classList.remove('pulse'), 520);
+  }
+  if (navigator.vibrate) navigator.vibrate(8);
+}));
+document.querySelectorAll('.nav').forEach((n) => n.addEventListener('click', () => {
+  document.querySelectorAll('.nav').forEach((x) => x.classList.remove('active')); n.classList.add('active');
+}));
+</script>
+</body>
+</html>

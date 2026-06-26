@@ -35,6 +35,7 @@ function fmt(n){ n=+n||0; if(n>=1e6) return (n/1e6).toFixed(1)+'M'; if(n>=1e3) r
 
 /* -------------------------------------------------- visual themes -- */
 const THEMES = {
+  malaki:  { name:'ملكي',    grad:['#4E1322','#7B2D3A','#9C7A2E'], pat:'arab', accent:'#E8C766' },
   ink:     { name:'حِبر',    grad:['#1F2A44','#0B1020'], pat:'arab', accent:'#E8C766' },
   sahra:   { name:'صحراء',   grad:['#B8860B','#6B4A12'], pat:'geo',  accent:'#FFF1C9' },
   rawdah:  { name:'روضة',    grad:['#2C6E63','#15403A'], pat:'arab', accent:'#CFF3E6' },
@@ -64,7 +65,7 @@ const VERSES = [
   { body:'لا تحسبوا رقصي بينكم طربًا\nفالطيرُ يرقصُ مذبوحًا من الألمِ', att:'منسوب' },
 ];
 const SEED_POSTS = [
-  { type:'poem',  title:'على قدرِ أهلِ العزم', theme:'ink',
+  { type:'poem',  title:'على قدرِ أهلِ العزم', theme:'malaki',
     body:'على قدرِ أهلِ العزمِ تأتي العزائمُ\nوتأتي على قدرِ الكرامِ المكارمُ\nوتعظُمُ في عينِ الصغيرِ صغارُها\nوتصغُرُ في عينِ العظيمِ العظائمُ',
     meter:'الطويل', author:{ username:'al_mutanabbi', displayName:'أبو الطيب المتنبي', badges:['poet','verified'] } },
   { type:'quote', title:'', theme:'rawdah',
@@ -145,7 +146,7 @@ function renderCard(canvas, post) {
   // device-pixel crispness handled by fixed hi-res buffer
   const th = THEMES[post.theme] || THEMES.ink;
   const g = ctx.createLinearGradient(0, 0, W, H);
-  g.addColorStop(0, th.grad[0]); g.addColorStop(1, th.grad[1]);
+  th.grad.forEach((c, i) => g.addColorStop(i / (th.grad.length - 1), c));
   ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
   // soft vignette
   const rg = ctx.createRadialGradient(W/2, H*0.4, 80, W/2, H/2, H*0.8);
@@ -508,7 +509,7 @@ function capsuleEl(p) {
   el.className = 'capsule'; el.dataset.id = p.id;
   el.innerHTML = `
     <div class="cap-art">
-      <div class="cap-grad" style="background:linear-gradient(150deg,${th.grad[0]},${th.grad[1]})"></div>
+      <div class="cap-grad" style="background:linear-gradient(150deg,${th.grad.join(',')})"></div>
       <div class="pat" style="background-image:url(&quot;${PATTERN[th.pat].split('#')[0]}&quot;)"></div>
     </div>
     <div class="cap-body">
@@ -748,7 +749,7 @@ async function renderProfile() {
   grid.className='mini-grid';
   grid.innerHTML = data.map(p => {
     const th = THEMES[p.theme]||THEMES.ink;
-    return `<div class="mini" style="background:linear-gradient(150deg,${th.grad[0]},${th.grad[1]})"><p>${esc(p.body)}</p></div>`;
+    return `<div class="mini" style="background:linear-gradient(150deg,${th.grad.join(',')})"><p>${esc(p.body)}</p></div>`;
   }).join('');
 }
 
